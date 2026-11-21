@@ -2,70 +2,79 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LMP-Jafura Spare Inventory</title>
 <style>
 :root{font-family:Arial,sans-serif;color:#202b36;background:#f4f7fa;--navy:#17324d;--blue:#1463a5;--border:#d9e1e8;--muted:#637383}
-*{box-sizing:border-box}body{margin:0}header{background:var(--navy);color:#fff;padding:18px 24px}
+*{box-sizing:border-box}body{margin:0}header{background:var(--navy);color:white;padding:18px 24px}
 header h1{margin:0 0 4px;font-size:22px}header p{margin:0;color:#d7e2ec}
-main{max-width:1500px;margin:auto;padding:20px}.toolbar,.panel-head,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.toolbar{justify-content:flex-end;margin-bottom:14px}.panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
-.panel-head{justify-content:space-between;margin-bottom:12px}h2{margin:0;font-size:17px}
-.forms{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;align-items:start}
+main{max-width:1500px;margin:auto;padding:20px}
+.panel{background:white;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
+.panel-head,.toolbar,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.panel-head{justify-content:space-between;margin-bottom:12px}.toolbar{justify-content:flex-end;margin-bottom:14px}
+h2{margin:0;font-size:17px}.forms{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;align-items:start}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:11px;align-items:end}
-label{display:block;margin-bottom:5px;color:var(--muted);font-weight:bold;font-size:12px}
-input,select{width:100%;min-height:36px;padding:7px 9px;border:1px solid #bdc9d4;border-radius:5px;background:#fff;color:inherit}
+label{display:block;margin-bottom:5px;color:var(--muted);font-size:12px;font-weight:bold}
+input,select{width:100%;min-height:36px;padding:7px 9px;border:1px solid #bdc9d4;border-radius:5px;background:white;color:inherit}
 button{border:0;border-radius:5px;padding:8px 12px;min-height:34px;cursor:pointer;font-weight:bold}
 button.primary{color:white;background:var(--blue)}button.secondary{color:var(--navy);background:#e8eef4}
 button.danger{color:#982b2b;background:#fbe8e8}button:hover{filter:brightness(.96)}
-.search{max-width:360px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:950px}
+.search{max-width:360px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:900px}
 th,td{padding:9px 10px;border-bottom:1px solid #e5ebf0;text-align:left;vertical-align:top}
-th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc{min-width:240px}
-.badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:bold}
+th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}
+td.desc{min-width:240px}.badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:bold}
 .ok{color:#17633d;background:#e2f3e9}.low{color:#8a5a00;background:#fff1cf}.out{color:#9b2525;background:#fde6e6}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:16px}
 .stat{padding:12px;background:white;border:1px solid var(--border);border-radius:7px}
 .stat strong{display:block;color:var(--navy);font-size:20px}.stat span,.note{color:var(--muted);font-size:12px}
-.empty{padding:18px;color:var(--muted);text-align:center}
-.actions-cell{white-space:nowrap}
+.empty{padding:18px;color:var(--muted);text-align:center}.actions-cell{white-space:nowrap}
 @media(max-width:600px){main{padding:12px}header{padding:15px}}
 </style>
 </head>
 <body>
 <header>
   <h1>LMP-Jafura Spare Inventory</h1>
-  <p>Inventory, goods movements, consumption tracking, and order preparation</p>
+  <p>Inventory, consumption tracking, goods movements, and order requests</p>
 </header>
 
 <main>
   <div class="toolbar">
-    <button class="secondary" id="backupBtn">Download data backup</button>
-    <button class="secondary" id="restoreBtn">Import data backup</button>
-    <input id="backupFile" type="file" accept=".json" hidden>
     <button class="secondary" id="importExcelBtn">Import workbook (.xlsx)</button>
     <input id="excelFile" type="file" accept=".xlsx,.xls" hidden>
     <button class="secondary" id="exportExcelBtn">Export workbook (.xlsx)</button>
+    <button class="secondary" id="backupBtn">Download JSON backup</button>
+    <button class="secondary" id="restoreBtn">Import JSON backup</button>
+    <input id="backupFile" type="file" accept=".json" hidden>
   </div>
 
   <div class="stats">
     <div class="stat"><strong id="statItems">0</strong><span>Inventory items</span></div>
     <div class="stat"><strong id="statUnits">0</strong><span>Units on hand</span></div>
     <div class="stat"><strong id="statLow">0</strong><span>Low / out of stock</span></div>
-    <div class="stat"><strong id="statOrderUnits">0</strong><span>Units in order</span></div>
+    <div class="stat"><strong id="statOrderUnits">0</strong><span>Units in order request</span></div>
   </div>
 
   <div class="forms">
     <section class="panel">
-      <div class="panel-head"><h2 id="itemTitle">Add New Inventory Item</h2></div>
+      <div class="panel-head"><h2 id="itemTitle">Add Inventory Item</h2></div>
       <form id="itemForm" class="grid">
         <input id="itemId" type="hidden">
         <div><label for="equipment">Equipment</label><input id="equipment" required></div>
         <div><label for="sap">SAP #</label><input id="sap"></div>
         <div><label for="description">Description</label><input id="description" required></div>
         <div><label for="mfg">MFG P/N</label><input id="mfg"></div>
+        <div><label for="rspu">RSPU</label><input id="rspu"></div>
         <div><label for="rate">Rate $</label><input id="rate" type="number" min="0" step="0.01"></div>
-        <div><label for="qty">Available quantity</label><input id="qty" type="number" min="0" step="1" value="0" required></div>
-        <div><label for="minQty">Inventory required quantity</label><input id="minQty" type="number" min="0" step="1"></div>
+        <div><label for="whQty">W/H Qty</label><input id="whQty" type="number" min="0" step="1"></div>
+        <div><label for="qty">Available Qty</label><input id="qty" type="number" min="0" step="1" value="0" required></div>
+        <div><label for="minQty">Inventory Required Qty</label><input id="minQty" type="number" min="0" step="1"></div>
+        <div><label for="orderedDate">Ordered Date</label><input id="orderedDate" type="date"></div>
+        <div><label for="orderedQty">Ordered Qty</label><input id="orderedQty" type="number" min="0" step="1"></div>
+        <div><label for="reservation">Reservation</label><input id="reservation"></div>
+        <div><label for="pr">PR</label><input id="pr"></div>
+        <div><label for="po">PO</label><input id="po"></div>
+        <div><label for="itemStatus">Status</label><input id="itemStatus"></div>
+        <div><label for="itemComments">Comments</label><input id="itemComments"></div>
         <div class="actions">
           <button class="primary" type="submit">Save item</button>
           <button class="secondary" type="button" id="cancelEdit">Cancel</button>
@@ -74,16 +83,16 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
     </section>
 
     <section class="panel">
-      <div class="panel-head"><h2>Post Goods Movement</h2></div>
+      <div class="panel-head"><h2>Post Inventory Movement</h2></div>
       <form id="movementForm" class="grid">
-        <div><label for="movementSearch">Search materials</label><input id="movementSearch" placeholder="Search equipment, SAP #, description, part"></div>
+        <div><label for="movementSearch">Search materials</label><input id="movementSearch" placeholder="Equipment, SAP #, description, part"></div>
         <div><label for="movementMaterial">Material</label><select id="movementMaterial" required></select></div>
         <div><label for="movementType">Movement</label>
           <select id="movementType"><option value="Receipt">Receipt</option><option value="Issue">Consumption / Issue</option></select>
         </div>
         <div><label for="movementQty">Quantity</label><input id="movementQty" type="number" min="1" step="1" required></div>
         <div><label for="movementDate">Date</label><input id="movementDate" type="date" required></div>
-        <div><label for="movementUser">Changed by</label><input id="movementUser"></div>
+        <div><label for="movementUser">Changed By</label><input id="movementUser"></div>
         <div><label for="movementComment">Comments</label><input id="movementComment"></div>
         <div class="actions"><button class="primary" type="submit">Post movement</button></div>
       </form>
@@ -91,16 +100,20 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Create New Order</h2>
-        <button class="secondary" id="exportOrderBtn" type="button">Export order (.xlsx)</button>
+        <h2>Order Request</h2>
+        <button class="secondary" id="exportOrderBtn" type="button">Export order request</button>
       </div>
       <form id="orderForm" class="grid">
-        <div><label for="orderSearch">Search materials</label><input id="orderSearch" placeholder="Search equipment, SAP #, description, part"></div>
+        <div><label for="orderSearch">Search materials</label><input id="orderSearch" placeholder="Equipment, SAP #, description, part"></div>
         <div><label for="orderMaterial">Material</label><select id="orderMaterial" required></select></div>
-        <div><label for="orderQty">Order quantity</label><input id="orderQty" type="number" min="1" step="1" required></div>
-        <div><label for="orderBy">Requested by</label><input id="orderBy"></div>
-        <div><label for="orderComment">Supplier / comments</label><input id="orderComment"></div>
-        <div class="actions"><button class="primary" type="submit">Add to order</button></div>
+        <div><label for="orderQty">Order Qty</label><input id="orderQty" type="number" min="1" step="1" required></div>
+        <div><label for="orderBy">Requested By</label><input id="orderBy"></div>
+        <div><label for="orderDate">Ordered Date</label><input id="orderDate" type="date"></div>
+        <div><label for="orderPR">PR</label><input id="orderPR"></div>
+        <div><label for="orderPO">PO</label><input id="orderPO"></div>
+        <div><label for="orderStatus">Status</label><input id="orderStatus"></div>
+        <div><label for="orderComment">Comments</label><input id="orderComment"></div>
+        <div class="actions"><button class="primary" type="submit">Add to order request</button></div>
       </form>
     </section>
   </div>
@@ -108,33 +121,33 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
   <section class="panel">
     <div class="panel-head">
       <h2>Inventory</h2>
-      <input id="inventorySearch" class="search" placeholder="Search equipment, SAP #, description, or part">
+      <input id="inventorySearch" class="search" placeholder="Search inventory">
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Equipment</th><th>SAP #</th><th>Description</th><th>MFG P/N</th><th>Rate $</th><th>Available</th><th>Required</th><th>Status</th><th>Action</th></tr></thead>
+      <thead><tr><th>Equipment</th><th>SAP #</th><th>Description</th><th>MFG P/N</th><th>RSPU</th><th>Rate $</th><th>W/H Qty</th><th>Available</th><th>Required</th><th>Status</th><th>Action</th></tr></thead>
       <tbody id="inventoryBody"></tbody>
     </table></div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
-      <h2>Order Items</h2>
-      <input id="orderListSearch" class="search" placeholder="Search order items">
+      <h2>Order Request Items</h2>
+      <input id="orderListSearch" class="search" placeholder="Search order request">
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Equipment</th><th>SAP #</th><th>Description</th><th>MFG P/N</th><th>Qty</th><th>Rate</th><th>Total</th><th>Action</th></tr></thead>
+      <thead><tr><th>Equipment</th><th>SAP #</th><th>Description</th><th>MFG P/N</th><th>Order Qty</th><th>Rate $</th><th>Line Total</th><th>Requested By</th><th>Action</th></tr></thead>
       <tbody id="orderBody"></tbody>
     </table></div>
-    <p class="note">Export prepares a workbook only; it does not create a PR or PO in SAP.</p>
+    <p class="note">This creates an Excel order request; it does not create a PR or PO in SAP.</p>
   </section>
 
   <section class="panel">
     <div class="panel-head">
       <h2>Spare Consumption Tracker</h2>
-      <input id="trackerSearch" class="search" placeholder="Search material, date, user, or comment">
+      <input id="trackerSearch" class="search" placeholder="Search tracker">
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Date</th><th>Type</th><th>Equipment</th><th>SAP #</th><th>Description</th><th>Qty</th><th>Changed by</th><th>Comments</th><th>Action</th></tr></thead>
+      <thead><tr><th>Equipment</th><th>SAP #</th><th>Description</th><th>MFG P/N</th><th>Movement</th><th>Qty</th><th>Date</th><th>Changed By</th><th>Comments</th><th>Action</th></tr></thead>
       <tbody id="trackerBody"></tbody>
     </table></div>
   </section>
@@ -144,168 +157,176 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
 <script>
 "use strict";
 
-const DB_KEY = "lmp-jafura-inventory-v1";
+const DB_KEY = "lmp-jafura-inventory-v2";
+const SHEETS = {
+  inventory: "LMP-Jafura Spare Inventory-2026",
+  tracker: "Spare Consumption Tracker",
+  order: "Order Request"
+};
 const $ = id => document.getElementById(id);
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => new Date().toISOString().slice(0,10);
+const blankState = () => ({materials:[],ledger:[],orders:[]});
 
-const initialMaterials = [
-  ["100 HP CF Pump","1147075","BEARING, COVER, PSI #62/B20617-01-01","62/B20617-01-01",33,9,""],
-  ["100 HP CF Pump","1147076","BEARING, OUTBOARD, PSI #62/B20616-1","62/B20616-1",81,6,""],
-  ["100 HP CF Pump","1147077","HOUSING, BEARING, PSI #62/B20624-01-01","62/B20624-01-01",101,9,""],
-  ["100 HP CF Pump","1274228","250 SERIES CENTRIFUGAL PUMP INBOARD/OUTBOARD BEARING HOUSING BOLT","62/B3861-138",3,8,""],
-  ["100 HP CF Pump","1147079","NUT, BEARING, PSI #62/B3932-62","62/B3932-62",3,40,""],
-  ["100 HP CF Pump","1147080","INBOARD BEARING, PSI #62/B20615-1","62/B20615-1",126,11,""],
-  ["100 HP CF Pump","1147081","BEARING COVER, PSI #62/B20626","62/B20626",57,14,""],
-  ["100 HP CF Pump","1147082","RING, PACKING, PSI #62/B22451-1A","62/B22451-1A",286,14,""],
-  ["100 HP CF Pump","1147083","STUFFING, BOX, PSI #62/B22223-01-30","62/B22223-01-30",299,8,""],
-  ["100 HP CF Pump","1147086","BOLT, GLAND, PSI #62/B3701-A","62/B3701-A",18,16,""],
-  ["100 HP CF Pump","1147087","GLAND, SET, PSI #62/B20622A","62/B20622A",90.38,0,""],
-  ["100 HP CF Pump","1146812","KIT,GASKET, END, PSI #62/B10399-46-1A","62/B10399-46-1A",29,4,""],
-  ["100 HP CF Pump","1146813","KIT,GASKET, END, PSI #62/B20625A","62/B20625A",16,4,""],
-  ["100 HP CF Pump","1274230","SEAL,OIL/GREASE, PSI 62/B20619A","62/B20619A",52,12,""],
-  ["100 HP CF Pump","77293","GASKET, PUMP MISSION #10399-46-1","",9.15,0,""],
-  ["100 HP CF Pump","1146814","KIT, LOCK NUT, PSI #62/B6123-4A","62/B6123-4A",17,10,""],
-  ["100 HP CF Pump","1146815","KIT, CASING, PSI #62/B19205-01-30A","62/B19205-01-30A",565,4,""],
-  ["100 HP CF Pump","1274231","IMPELLER,10.8 and 10 inch CF PMP, PSI 62/B19206-60-30","62/B19206-60-30",182,12,""],
-  ["100 HP CF Pump","1146818","KIT, CASING, PSI #62/B19117-01-30A","62/B19117-01-30A",1095,6,""],
-  ["100 HP CF Pump","1274232","IMPELLER,11.25 INC PSI 62/B19116-72-30","62/B19116-72-30",282,0,""],
-  ["100 HP CF Pump","1274233","WEAR PAD 8X6X14 250 SERIES CENTRIFUGAL PUMP","62/B2506-01-30",114,2,""],
-  ["100 HP CF Pump","1274234","HOUSING,CASING, PSI 62/B19117-01-ENP","62/B19117-01-ENP",2793.65,0,""],
-  ["100 HP CF Pump","393279","WEAR PAD 4x3x13 250 SERIES CENTRIFUGAL PUMP","",null,2,""],
-  ["100 HP CF Pump","469300","Shaft Sleeve MAX OD 2.5-inch L-4.12 inches","20613-21G7A",278.26,12,""],
-  ["100 HP CF Pump","469299","Shaft Assembly (20612-02-33A)","20612-02-33A",187.37,2,""],
-  ["100 HP CF Pump","780308","Shaft Sleeve (PSI make)","",128,0,""],
-  ["100 HP CF Pump","1233442","GREASE,SEAL KIT PS.#62/B20619A","62/B20619A",60,0,""],
-  ["100 HP CF Pump","NA","Coupling Rubber 11\"","",null,0,""],
-  ["100 HP CF Pump","","Coupling Rubber 12\"","",null,0,""],
-  ["100 HP CF Pump","883983","ASSEMBLY,OB,BEARING,NOV # 20624H","",112.06,0,""],
-  ["100 HP CF Pump","469306","MECHANICAL SEAL, #22451-1","",null,12,""],
-  ["100 HP CF Pump","2027563","PUMP,SKID-PSI#62N112518341131806","",null,0,""],
-  ["100 HP CF Pump","2027564","PUMP,NICKL,WETD-PSI#62NENP11251834113186","",null,0,""],
-  ["100 HP CF Pump","2027565","PUMP,4X3X13,25HP,-PSI#62F102518341101806","",null,0,""],
-  ["100 HP CF Pump","","BEARING INBOARD 62 B 20615-1(3313/C3)","",null,0,""],
-  ["100 HP CF Pump","","BEARING OUTBOARD 62B20616-1","",null,0,""],
-  ["100 HP CF Pump","1052980","IMPELLER, 11\" BADGER","62/B19206-70-30",223.75,0,""],
-  ["100 HP CF Pump","1092772","BEARING, TAPER ROLLER","PSI #52/2000365",136.27,0,""],
-  ["100 HP CF Pump","1092773","BEARING, TAPER ROLLER","PSI #52/2006340",111.66,0,""],
-  ["100 HP CF Pump","1092776","SEAL, OIL, PSI #52/200...","PSI #52/2001019",105.73,0,""],
-  ["100 HP CF Pump","1117636","BEARING, TAPER ROLLER","PSI #52/2000226",177.04,0,""],
-  ["100 HP CF Pump","1146811","KIT, SHAFT, SLEEVE","PSI #62/B20943-21A",157.37,0,""],
-  ["100 HP CF Pump","1277407","CPLG,12S SLEEVE,PSI#99/12S SLEEVE","PSI#99/12S SLEEVE",209,4,""],
-  ["100 HP CF Pump","1277411","CPLG,9S SLEEVE,PSI#99/9S SLEEVE","PSI#99/9S SLEEVE",61.6,0,""],
-  ["100 HP CF Pump","2027569","CLAMP,2-15/16IN,CTX-PSI#52/21516 CTX","PSI#52/21516 CTX",893,0,""],
-  ["125 HP CF","14299641","SPARE PUMP SET","",null,1,""],
-  ["125 HP CF","14299642","SPARE PUMP SET","",null,1,""],
-  ["125 HP CF","14326237","SPARE PUMP SET","",null,1,""],
-  ["20 HP CF Pump","","DIESEL OFFLOADING PIONEER PUMP SELF PRIMING 8 JE","",null,2,""],
-  ["25 HP CF Pump","","DIESEL OFFLOADING MAKE DADDY PUMP 9JE","",null,0,""],
-  ["PSI Agitator","1016834","LOW PROFILE 15 HP GEARBOX ONLY; PB123; 30:1 RATIO; 2 15/16\" OUTPUT SHAFT; 250TC NEMA INPUT FLANGE","52125015",5274.21,2,""],
-  ["PSI Agitator","952705","MOTOR COUPLING 250TC D=1,625\"","52/2503342",239.86,5,""],
-  ["PSI Agitator","952706","FLEXIBLE JOINT FOR SIZE N210/250 INPUT","52/2510647",156.53,5,""],
-  ["PSI Agitator","952707","BALL BEARING","52/2000480",114.88,5,""],
-  ["PSI Agitator","952708","BALL BEARING","52/2000456",114.88,5,""],
-  ["PSI Agitator","1016831","OIL SEAL - TC (50x72x8)","52/2000918",42.92,10,""],
-  ["PSI Agitator","952710","TAPER ROLLER BEARING","52/2000251",56.81,10,""],
-  ["PSI Agitator","952711","TAPER ROLLER BEARING","52/2000526",66.91,10,""],
-  ["PSI Agitator","952712","TAPER ROLLER BEARING","52/2000354",68.17,10,""],
-  ["PSI Agitator","952713","OIL SEAL - SEAL,OIL 85X130X10 TC NBR","52/2001007",56.81,18,""],
-  ["PSI Agitator","952714","TAPER ROLLER BEARING","52/2000222",196.94,10,""],
-  ["PSI Agitator","1146809","GEARBOX, BREATHER PLUG, PSI #52/3033136","52/3033136",42,0,""],
-  ["PSI Agitator","1118726","SEAL-PLUG RCA 72 10 NEUTRO","52/2001040",64.38,10,""],
-  ["PSI Agitator","1118718","OIL LEVEL PLUG + WASHER G1/2in","52/2002376",33.98,24,""],
-  ["PSI Agitator","1146810","CLAMP, CTX SS","52/21516 CTX S/S",2042.04,4,""],
-  ["PSI Agitator","","Lip Oil Seal (Intermediate Housing)","F686-NB1 (TC50-72-8)",null,0,""],
-  ["PSI Agitator","","Lip seal - old model gear box","TC 55-85-10",null,0,""],
-  ["PSI Agitator","NA","Lip Oil Seal (Intermediate Housing)","F686-NB1 (TC50-72-8)",null,0,""],
-  ["PSI Agitator","NA","Lip seal - old model gear box","TC 55-85-10",null,0,""],
-  ["PSI Agitator","1244682","SHAFT,AG 2-15/16 X 108 LONG","52S1087",1058,0,""],
-  ["PSI Agitator","1244683","STARTER,15HP 7 MAGNETIC","98/ST 15HP",2036,0,""],
-  ["PSI Agitator","1244681","BUSHING,40'' IMPELLER","52IK40172",1103.96,0,""],
-  ["GTECH BC-20","993604","Echo Cover Seal","M1-3299",201.95,1,""],
-  ["GTECH BC-20","1030017","Cap Screw - Retainers","CP3/8X7/8US6A",4.09,1,""],
-  ["GTECH BC-20","1030018","O-ring - Retainers","OR5.3-88.3N70",9.79,8,""],
-  ["GTECH BC-20","1288165","Solid Carbide Discharge, Insert","M2-1897",707.56,4,""],
-  ["GTECH BC-20","1288164","Discharge Port Retainer","M2-1896",875.16,0,""],
-  ["GTECH BC-20","1030019","Vibration Sensors/Magnet flat","P2-3143",195.62,0,""],
-  ["GTECH BC-20","1030020","Echo 3 Major Kit","M2-1701",225.84,2,""],
-  ["GTECH BC-20","1030021","Bearing Seal Kit","M2-1769",5195.56,4,""],
-  ["GTECH BC-20","993679","Drive Belt - Eagle NRG G-1960","P1-1725",892.8,3,""],
-  ["GTECH BC-20","993681","Case Clamp Nut","P1 1870 (3049)",32.68,2,""],
-  ["GTECH BC-20","1030022","Electric Motor - 150HP Explosion Proof","P2-1151",18632.44,4,""],
-  ["GTECH BC-20","1030023","Electric Motor - 40HP Explosion Proof","P2-1023",4703.31,2,""],
-  ["GTECH BC-20","1030025","7.1 Gearbox Rebuild Kit","M2-1876",783.22,2,""],
-  ["GTECH BC-20","1030026","Naked Pinion Rebuild Kit","M2-1877",39.57,4,""],
-  ["GTECH BC-20","1030029","Split Sleeve - 8JNS","P2-3147",91.52,3,""],
-  ["GTECH BC-20","1030027","Nave","M1-3733",381.74,2,""],
-  ["GTECH BC-20","2026725","Seal, Lip, 55 x 72 x 8 (Gearbox Coupling Side)","P2-4885",null,4,""],
-  ["GTECH BC-20","1030028","GS Coupling Bearing Housing","M1-2704",565.69,2,""],
-  ["GTECH BC-20","1219266","Ball bearing","P1-1659",477,3,""],
-  ["GTECH BC-20","1219265","Cylindrical roller bearing","P1-1658",557.91,6,""],
-  ["GTECH BC-20","","Ball bearing","P1-1660",null,3,""],
-  ["GTECH BC-20","2036191","Roller bearing (solid end pillow bearing)","P2-3104",1996.66,2,""],
-  ["GTECH BC-20","","Oil Seal","P1-1662",null,4,""],
-  ["GTECH BC-20","1219262","Lip seal","P1-1661",null,6,""],
-  ["GTECH BC-20","14202068","Lobe pump with motor","NA",null,1,""],
-  ["GTECH BC-20","14202069","Lobe pump with motor","NA",null,1,""],
-  ["GTECH BC-20","NA","Lock Ring Seal","P1-1663",null,2,""],
-  ["GTECH BC-20","2027543","FLANGE,DRIVEN,8S20MM-GTECH#P2-3145","P2-3145",274.27,1,""],
-  ["GTECH BC-20","2027385","Flange,Drive,8S218,Bc20","P2-3146",92.02,1,""],
-  ["GTECH BC-20","2027419","Bush,Holding,Threaded,Ss","P2-3537",637.33,1,""],
-  ["GTECH BC-20","2027480","BEARING,ROLLER,CYLINDRICAL-GTECH#94724","94724",477.13,2,""],
-  ["GTECH BC-20","2027488","BEARING,ROLLER,SELF-ALIGN-GTECH#570330","570330",358.42,2,""],
-  ["GTECH BC-20","2027515","Sleeve,Hardened,Fl518","1060668",124.34,2,""],
-  ["GTECH BC-20","2027562","Sleeve,Hardened,Pl/Fl","1023099",61.05,2,""],
-  ["GTECH BC-20","2027440","Seal,Oil,Viton,Dbl Lip (Pump Inside Double Lip Seal)","1109584",64.45,2,""],
-  ["GTECH BC-20","2027396","Ring,Support,60X75X3,Din","1219248",27.22,0,""],
-  ["GTECH BC-20","2026675","Gearbox, Akim, Kit-9.0KN","M2-4891",5818.38,1,""],
-  ["GTECH BC-20","1219256","BALL BEARING,6226 M/C3,G TECH#P1-1657","P1-1657",952.6,2,""],
-  ["GTECH BC-20","2036341","BEARING,CYL,RO,NU 1026 ML/C3,GT,G0007877","G0007877",910.95,2,""],
-  ["500 Series Lobe Pump","940285","FL Cover Protection Plate Nitro V","P2-2514",323.01,2,""],
-  ["500 Series Lobe Pump","940286","FL Axial Casing Protection Plate","P2-2515",1016.75,0,2],
-  ["500 Series Lobe Pump","940288","FL Mechanical Seal Viton","P2-2731",386.63,13,4],
-  ["500 Series Lobe Pump","940289","FL M8 x 20 SS Counter Sunk Screw","P2-2537",6.13,0,""],
-  ["500 Series Lobe Pump","940291","FL O-ring Pump Casing 1176 x 9 Viton","P2-2732",308.56,2,""],
-  ["500 Series Lobe Pump","940294","FL Holding Bush O-ring Pump 110 x 3 Viton","P2-2734",36.74,2,""],
-  ["500 Series Lobe Pump","940296","FL O-ring Pump 67 x 4 Viton (for holding bush)","P2-2733",38.33,6,4],
-  ["500 Series Lobe Pump","940297","FL 518 Radial Liners (2027479)","P2-2516",464,5,""],
-  ["500 Series Lobe Pump","1030024","FL 518 Lobe Puller","P2-2518",188.74,2,""],
-  ["500 Series Lobe Pump","940299","FL 518 Multi Tool for Mechanical Seals","P2-2519",196.56,1,""],
-  ["500 Series Lobe Pump","940306","FL518 Special Tool for Tip Removal","P2-2520",318.28,0,""],
-  ["500 Series Lobe Pump","668667","Bolt, Adjust Assy 303 SST","G0005479",22.42,0,""],
-  ["500 Series Lobe Pump","780046","Tool, Extraction-Adj Bolt","16070-01",208.71,3,""],
-  ["500 Series Lobe Pump","1093728","Rotor 2 Lobe, 2 CCW","P2-2891",2472.12,2,""],
-  ["500 Series Lobe Pump","1093729","Rotor 2 Lobe, 2 CW","P2-2892",1271.38,2,""],
-  ["500 Series Lobe Pump","2045948","Holding Bush w/ Thread Stainless Steel Option","P2-3538",null,3,""],
-  ["500 Series Lobe Pump","2027439","Seal, Oil, Viton, FL518 — Shaft Seal Coupling Side","1109583",67.4,2,""],
-  ["500 Series Lobe Pump","2027449","O-ring, Viton, CL/FL518","940294",12.8,2,""],
-  ["500 Series Lobe Pump","2027457","Clamping Part, FL518","1060659",68.54,4,""],
-  ["500 Series Lobe Pump","737244","WRAPFLEX ELEMENT AND COVER, #102494 (Coupling)","",null,2,""]
-].map((r,i)=>({id:"seed-"+i,equipment:r[0],sap:r[1],description:r[2],mfg:r[3],rate:r[4],qty:r[5],min:r[6]}));
+/* Seed rows transcribed from the provided document. */
+const seedRows = [
+  ["100 HP CF Pump","1147075","BEARING, COVER, PSI #62/B20617-01-01","62/B20617-01-01",1,33,9,""],
+  ["100 HP CF Pump","1147076","BEARING, OUTBOARD, PSI #62/B20616-1","62/B20616-1",2,81,6,""],
+  ["100 HP CF Pump","1147077","HOUSING, BEARING, PSI #62/B20624-01-01","62/B20624-01-01",1,101,9,""],
+  ["100 HP CF Pump","1274228","250 SERIES CENTRIFUGAL PUMP INBOARD/OUTBOARD BEARING HOUSING BOLT","62/B3861-138",4,3,8,""],
+  ["100 HP CF Pump","1147079","NUT, BEARING, PSI #62/B3932-62","62/B3932-62",4,3,40,""],
+  ["100 HP CF Pump","1147080","INBOARD BEARING, PSI #62/B20615-1","62/B20615-1",1,126,11,""],
+  ["100 HP CF Pump","1147081","BEARING COVER, PSI #62/B20626","62/B20626",1,57,14,""],
+  ["100 HP CF Pump","1147082","RING, PACKING, PSI #62/B22451-1A","62/B22451-1A",1,286,14,""],
+  ["100 HP CF Pump","1147083","STUFFING, BOX, PSI #62/B22223-01-30","62/B22223-01-30",1,299,8,""],
+  ["100 HP CF Pump","1147086","BOLT, GLAND, PSI #62/B3701-A","62/B3701-A",2,18,16,""],
+  ["100 HP CF Pump","1147087","GLAND, SET, PSI #62/B20622A","62/B20622A",1,90.38,0,""],
+  ["100 HP CF Pump","1146812","KIT,GASKET, END, PSI #62/B10399-46-1A","62/B10399-46-1A",1,29,4,""],
+  ["100 HP CF Pump","1146813","KIT,GASKET, END, PSI #62/B20625A","62/B20625A",1,16,4,""],
+  ["100 HP CF Pump","1274230","SEAL,OIL/GREASE, PSI 62/B20619A","62/B20619A",1,52,12,""],
+  ["100 HP CF Pump","77293","GASKET, PUMP MISSION #10399-46-1","", "",9.15,0,""],
+  ["100 HP CF Pump","1146814","KIT, LOCK NUT, PSI #62/B6123-4A","62/B6123-4A",1,17,10,""],
+  ["100 HP CF Pump","1146815","KIT, CASING, PSI #62/B19205-01-30A","62/B19205-01-30A","1set",565,4,""],
+  ["100 HP CF Pump","1274231","IMPELLER,10.8 and 10 inch CF PMP, PSI 62/B19206-60-30","62/B19206-60-30",1,182,12,""],
+  ["100 HP CF Pump","1146818","KIT, CASING, PSI #62/B19117-01-30A","62/B19117-01-30A","1set",1095,6,""],
+  ["100 HP CF Pump","1274232","IMPELLER,11.25 INC PSI 62/B19116-72-30","62/B19116-72-30",1,282,0,""],
+  ["100 HP CF Pump","1274233","WEAR PAD 8X6X14 250 SERIES CENTRIFUGAL PUMP","62/B2506-01-30",1,114,2,""],
+  ["100 HP CF Pump","1274234","HOUSING,CASING, PSI 62/B19117-01-ENP","62/B19117-01-ENP",1,2793.65,0,""],
+  ["100 HP CF Pump","393279","WEAR PAD 4x3x13 250 SERIES CENTRIFUGAL PUMP","",1,"",2,""],
+  ["100 HP CF Pump","469300","Shaft Sleeve MAX OD 2.5-inch L-4.12 inches","20613-21G7A",1,278.26,12,""],
+  ["100 HP CF Pump","469299","Shaft Assembly (20612-02-33A)","20612-02-33A",1,187.37,2,""],
+  ["100 HP CF Pump","780308","Shaft Sleeve (PSI make)","",1,128,0,""],
+  ["100 HP CF Pump","1233442","GREASE,SEAL KIT PS.#62/B20619A","62/B20619A",1,60,0,""],
+  ["100 HP CF Pump","NA","Coupling Rubber 11\"","", "", "",0,""],
+  ["100 HP CF Pump","","Coupling Rubber 12\"","",1,"",0,""],
+  ["100 HP CF Pump","883983","ASSEMBLY,OB,BEARING,NOV # 20624H","",1,112.06,0,""],
+  ["100 HP CF Pump","469306","MECHANICAL SEAL, #22451-1","",1,"",12,""],
+  ["100 HP CF Pump","2027563","PUMP,SKID-PSI#62N112518341131806","",1,"",0,""],
+  ["100 HP CF Pump","2027564","PUMP,NICKL,WETD-PSI#62NENP11251834113186","",1,"",0,""],
+  ["100 HP CF Pump","2027565","PUMP,4X3X13,25HP,-PSI#62F102518341101806","",1,"",0,""],
+  ["100 HP CF Pump","","BEARING INBOARD 62 B 20615-1(3313/C3)","",1,"",0,""],
+  ["100 HP CF Pump","","BEARING OUTBOARD 62B20616-1","",1,"",0,""],
+  ["100 HP CF Pump","1052980","IMPELLER, 11\" BADGER","62/B19206-70-30",1,223.75,0,""],
+  ["100 HP CF Pump","1092772","BEARING, TAPER ROLLER","PSI #52/2000365",1,136.27,0,""],
+  ["100 HP CF Pump","1092773","BEARING, TAPER ROLLER","PSI #52/2006340",1,111.66,0,""],
+  ["100 HP CF Pump","1092776","SEAL, OIL, PSI #52/200...","PSI #52/2001019",1,105.73,0,""],
+  ["100 HP CF Pump","1117636","BEARING, TAPER ROLLER","PSI #52/2000226",1,177.04,0,""],
+  ["100 HP CF Pump","1146811","KIT, SHAFT, SLEEVE","PSI #62/B20943-21A",1,157.37,0,""],
+  ["100 HP CF Pump","1277407","CPLG,12S SLEEVE,PSI#99/12S SLEEVE","PSI#99/12S SLEEVE",1,209,4,""],
+  ["100 HP CF Pump","1277411","CPLG,9S SLEEVE,PSI#99/9S SLEEVE","PSI#99/9S SLEEVE",1,61.6,0,""],
+  ["100 HP CF Pump","2027569","CLAMP,2-15/16IN,CTX-PSI#52/21516 CTX","PSI#52/21516 CTX",1,893,0,""],
+  ["125 HP CF","14299641","SPARE PUMP SET","", "", "",1,""],
+  ["125 HP CF","14299642","SPARE PUMP SET","", "", "",1,""],
+  ["125 HP CF","14326237","SPARE PUMP SET","", "", "",1,""],
+  ["20 HP CF Pump","","DIESEL OFFLOADING PIONEER PUMP SELF PRIMING 8 JE","", "", "",2,""],
+  ["25 HP CF Pump","","DIESEL OFFLOADING MAKE DADDY PUMP 9JE","", "", "",0,""],
+  ["PSI Agitator","1016834","LOW PROFILE 15 HP GEARBOX ONLY; PB123; 30:1 RATIO; 2 15/16\" OUTPUT SHAFT; 250TC NEMA INPUT FLANGE","52125015",1,5274.21,2,""],
+  ["PSI Agitator","952705","MOTOR COUPLING 250TC D=1,625\"","52/2503342",1,239.86,5,""],
+  ["PSI Agitator","952706","FLEXIBLE JOINT FOR SIZE N210/250 INPUT","52/2510647",1,156.53,5,""],
+  ["PSI Agitator","952707","BALL BEARING","52/2000480",1,114.88,5,""],
+  ["PSI Agitator","952708","BALL BEARING","52/2000456",1,114.88,5,""],
+  ["PSI Agitator","1016831","OIL SEAL - TC (50x72x8)","52/2000918",1,42.92,10,""],
+  ["PSI Agitator","952710","TAPER ROLLER BEARING","52/2000251",1,56.81,10,""],
+  ["PSI Agitator","952711","TAPER ROLLER BEARING","52/2000526",1,66.91,10,""],
+  ["PSI Agitator","952712","TAPER ROLLER BEARING","52/2000354",1,68.17,10,""],
+  ["PSI Agitator","952713","OIL SEAL - SEAL,OIL 85X130X10 TC NBR","52/2001007",1,56.81,18,""],
+  ["PSI Agitator","952714","TAPER ROLLER BEARING","52/2000222",1,196.94,10,""],
+  ["PSI Agitator","1146809","GEARBOX, BREATHER PLUG, PSI #52/3033136","52/3033136",1,42,0,""],
+  ["PSI Agitator","1118726","SEAL-PLUG RCA 72 10 NEUTRO","52/2001040","",64.38,10,""],
+  ["PSI Agitator","1118718","OIL LEVEL PLUG + WASHER G1/2in","52/2002376",1,33.98,24,""],
+  ["PSI Agitator","1146810","CLAMP, CTX SS","52/21516 CTX S/S",1,2042.04,4,""],
+  ["PSI Agitator","","Lip Oil Seal (Intermediate Housing)","F686-NB1 (TC50-72-8)",1,"",0,""],
+  ["PSI Agitator","","Lip seal - old model gear box","TC 55-85-10",1,"",0,""],
+  ["PSI Agitator","NA","Lip Oil Seal (Intermediate Housing)","F686-NB1 (TC50-72-8)",1,"",0,""],
+  ["PSI Agitator","NA","Lip seal - old model gear box","TC 55-85-10",1,"",0,""],
+  ["PSI Agitator","1244682","SHAFT,AG 2-15/16 X 108 LONG","52S1087",1,1058,0,""],
+  ["PSI Agitator","1244683","STARTER,15HP 7 MAGNETIC","98/ST 15HP",1,2036,0,""],
+  ["PSI Agitator","1244681","BUSHING,40'' IMPELLER","52IK40172",1,1103.96,0,""],
+  ["GTECH BC-20","993604","Echo Cover Seal","M1-3299",2,201.95,1,""],
+  ["GTECH BC-20","1030017","Cap Screw - Retainers","CP3/8X7/8US6A",20,4.09,1,""],
+  ["GTECH BC-20","1030018","O-ring - Retainers","OR5.3-88.3N70",5,9.79,8,""],
+  ["GTECH BC-20","1288165","Solid Carbide Discharge, Insert","M2-1897",10,707.56,4,""],
+  ["GTECH BC-20","1288164","Discharge Port Retainer","M2-1896","",875.16,0,""],
+  ["GTECH BC-20","1030019","Vibration Sensors/Magnet flat","P2-3143",2,195.62,0,""],
+  ["GTECH BC-20","1030020","Echo 3 Major Kit","M2-1701",1,225.84,2,""],
+  ["GTECH BC-20","1030021","Bearing Seal Kit","M2-1769",1,5195.56,4,""],
+  ["GTECH BC-20","993679","Drive Belt - Eagle NRG G-1960","P1-1725",1,892.8,3,""],
+  ["GTECH BC-20","993681","Case Clamp Nut","P1 1870 (3049)",8,32.68,2,""],
+  ["GTECH BC-20","1030022","Electric Motor - 150HP Explosion Proof","P2-1151",1,18632.44,4,""],
+  ["GTECH BC-20","1030023","Electric Motor - 40HP Explosion Proof","P2-1023",8,4703.31,2,""],
+  ["GTECH BC-20","1030025","7.1 Gearbox Rebuild Kit","M2-1876",2,783.22,2,""],
+  ["GTECH BC-20","1030026","Naked Pinion Rebuild Kit","M2-1877",2,39.57,4,""],
+  ["GTECH BC-20","1030029","Split Sleeve - 8JNS","P2-3147",2,91.52,3,""],
+  ["GTECH BC-20","1030027","Nave","M1-3733",2,381.74,2,""],
+  ["GTECH BC-20","2026725","Seal, Lip, 55 x 72 x 8 (Gearbox Coupling Side)","P2-4885",1,"",4,""],
+  ["GTECH BC-20","1030028","GS Coupling Bearing Housing","M1-2704",2,565.69,2,""],
+  ["GTECH BC-20","1219266","Ball bearing","P1-1659","",477,3,""],
+  ["GTECH BC-20","1219265","Cylindrical roller bearing","P1-1658","",557.91,6,""],
+  ["GTECH BC-20","","Ball bearing","P1-1660","", "NA",3,""],
+  ["GTECH BC-20","2036191","Roller bearing (solid end pillow bearing)","P2-3104","",1996.66,2,""],
+  ["GTECH BC-20","","Oil Seal","P1-1662","", "NA",4,""],
+  ["GTECH BC-20","1219262","Lip seal","P1-1661","", "NA",6,""],
+  ["GTECH BC-20","14202068","Lobe pump with motor","NA","", "NA",1,""],
+  ["GTECH BC-20","14202069","Lobe pump with motor","NA","", "NA",1,""],
+  ["GTECH BC-20","NA","Lock Ring Seal","P1-1663","", "NA",2,""],
+  ["GTECH BC-20","2027543","FLANGE,DRIVEN,8S20MM-GTECH#P2-3145","P2-3145","",274.27,1,""],
+  ["GTECH BC-20","2027385","Flange,Drive,8S218,Bc20","P2-3146","",92.02,1,""],
+  ["GTECH BC-20","2027419","Bush,Holding,Threaded,Ss","P2-3537","",637.33,1,""],
+  ["GTECH BC-20","2027480","BEARING,ROLLER,CYLINDRICAL-GTECH#94724","94724","",477.13,2,""],
+  ["GTECH BC-20","2027488","BEARING,ROLLER,SELF-ALIGN-GTECH#570330","570330","",358.42,2,""],
+  ["GTECH BC-20","2027515","Sleeve,Hardened,Fl518","1060668","",124.34,2,""],
+  ["GTECH BC-20","2027562","Sleeve,Hardened,Pl/Fl","1023099","",61.05,2,""],
+  ["GTECH BC-20","2027440","Seal,Oil,Viton,Dbl Lip (Pump Inside Double Lip Seal)","1109584","",64.45,2,""],
+  ["GTECH BC-20","2027396","Ring,Support,60X75X3,Din","1219248","",27.22,0,""],
+  ["GTECH BC-20","2026675","Gearbox, Akim, Kit-9.0KN","M2-4891","",5818.38,1,""],
+  ["GTECH BC-20","1219256","BALL BEARING,6226 M/C3,G TECH#P1-1657","P1-1657","",952.6,2,""],
+  ["GTECH BC-20","2036341","BEARING,CYL,RO,NU 1026 ML/C3,GT,G0007877","G0007877","",910.95,2,""],
+  ["500 Series Lobe Pump","940285","FL Cover Protection Plate Nitro V","P2-2514",1,323.01,2,""],
+  ["500 Series Lobe Pump","940286","FL Axial Casing Protection Plate","P2-2515",2,1016.75,0,"Ordered 2 pc locally"],
+  ["500 Series Lobe Pump","940288","FL Mechanical Seal Viton","P2-2731",4,386.63,13,""],
+  ["500 Series Lobe Pump","940289","FL M8 x 20 SS Counter Sunk Screw","P2-2537",8,6.13,0,""],
+  ["500 Series Lobe Pump","940291","FL O-ring Pump Casing 1176 x 9 Viton","P2-2732",1,308.56,2,""],
+  ["500 Series Lobe Pump","940294","FL Holding Bush O-ring Pump 110 x 3 Viton","P2-2734",2,36.74,2,""],
+  ["500 Series Lobe Pump","940296","FL O-ring Pump 67 x 4 Viton (for holding bush)","P2-2733",4,38.33,6,""],
+  ["500 Series Lobe Pump","940297","FL 518 Radial Liners (2027479)","P2-2516",2,464,5,""],
+  ["500 Series Lobe Pump","1030024","FL 518 Lobe Puller","P2-2518",1,188.74,2,""],
+  ["500 Series Lobe Pump","940299","FL 518 Multi Tool for Mechanical Seals","P2-2519",1,196.56,1,""],
+  ["500 Series Lobe Pump","940306","FL518 Special Tool for Tip Removal","P2-2520",1,318.28,0,""],
+  ["500 Series Lobe Pump","668667","Bolt, Adjust Assy 303 SST","G0005479","",22.42,0,""],
+  ["500 Series Lobe Pump","780046","Tool, Extraction-Adj Bolt","16070-01","",208.71,3,""],
+  ["500 Series Lobe Pump","1093728","Rotor 2 Lobe, 2 CCW","P2-2891",1,2472.12,2,""],
+  ["500 Series Lobe Pump","1093729","Rotor 2 Lobe, 2 CW","P2-2892",1,1271.38,2,""],
+  ["500 Series Lobe Pump","2045948","Holding Bush w/ Thread Stainless Steel Option","P2-3538",2,"NA",3,""],
+  ["500 Series Lobe Pump","2027439","Seal, Oil, Viton, FL518 - Shaft Seal Coupling Side","1109583",1,67.4,2,""],
+  ["500 Series Lobe Pump","2027449","O-ring, Viton, CL/FL518","940294",2,12.8,2,""],
+  ["500 Series Lobe Pump","2027457","Clamping Part, FL518","1060659",4,68.54,4,""],
+  ["500 Series Lobe Pump","737244","WRAPFLEX ELEMENT AND COVER, #102494 (Coupling)","", "", "NA",2,"Ordered 6 pc locally"]
+];
 
-function loadState(){
-  try{return JSON.parse(localStorage.getItem(DB_KEY)||"null");}
-  catch{return null;}
-}
-let state=loadState();
-if(!state||!Array.isArray(state.materials))state={materials:initialMaterials,ledger:[],orders:[]};
-let materials=state.materials;
-let ledger=Array.isArray(state.ledger)?state.ledger:[];
-let orders=Array.isArray(state.orders)?state.orders:[];
-materials.forEach((m,i)=>{if(!m.id)m.id="restored-"+i+"-"+crypto.randomUUID();});
-ledger.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
-orders.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
+let saved;
+try { saved = JSON.parse(localStorage.getItem(DB_KEY) || "null"); } catch { saved = null; }
+
+let materials = Array.isArray(saved?.materials)
+  ? saved.materials
+  : seedRows.map((r,i)=>({
+      id:"seed-"+i,equipment:r[0],sap:r[1],description:r[2],mfg:r[3],
+      rspu:r[4],rate:r[5],qty:Number(r[6])||0,min:"",
+      whQty:"",orderedDate:"",orderedQty:"",reservation:"",pr:"",po:"",status:"",comments:r[7]
+    }));
+let ledger = Array.isArray(saved?.ledger) ? saved.ledger : [];
+let orders = Array.isArray(saved?.orders) ? saved.orders : [];
 
 function persist(){localStorage.setItem(DB_KEY,JSON.stringify({materials,ledger,orders}));}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function cash(v){return v==null||v===""||!Number.isFinite(Number(v))?"—":"$"+Number(v).toFixed(2);}
+function money(v){return v==null||v===""||!Number.isFinite(Number(v))?"—":"$"+Number(v).toFixed(2);}
 function itemById(id){return materials.find(m=>String(m.id)===String(id));}
-function searchable(values,term){return !term||values.join(" ").toLowerCase().includes(term.trim().toLowerCase());}
-function status(m){
+function matches(values,term){return !term||values.join(" ").toLowerCase().includes(term.trim().toLowerCase());}
+function stockStatus(m){
   const q=Number(m.qty)||0,min=Number(m.min)||0;
   if(q<=0)return["Out of stock","out"];
   if(min>0&&q<min)return["Low stock","low"];
   return["In stock","ok"];
 }
+
 function renderStats(){
   $("statItems").textContent=materials.length;
   $("statUnits").textContent=materials.reduce((s,m)=>s+(Number(m.qty)||0),0);
@@ -314,99 +335,103 @@ function renderStats(){
 }
 function renderInventory(){
   const term=$("inventorySearch").value.trim().toLowerCase();
-  const rows=materials.filter(m=>searchable([m.equipment,m.sap,m.description,m.mfg],term));
+  const rows=materials.filter(m=>matches([m.equipment,m.sap,m.description,m.mfg],term));
   $("inventoryBody").innerHTML=rows.length?rows.map(m=>{
-    const [text,cls]=status(m);
+    const [label,cls]=stockStatus(m);
     return `<tr>
       <td>${esc(m.equipment)}</td><td>${esc(m.sap||"—")}</td><td class="desc">${esc(m.description)}</td>
-      <td>${esc(m.mfg||"—")}</td><td>${cash(m.rate)}</td><td>${Number(m.qty)||0}</td>
-      <td>${m.min==null||m.min===""?"—":esc(m.min)}</td><td><span class="badge ${cls}">${text}</span></td>
-      <td class="actions-cell">
-        <button class="secondary" data-edit-material="${esc(m.id)}">Edit</button>
-        <button class="danger" data-delete-material="${esc(m.id)}">Delete</button>
-      </td></tr>`;
-  }).join(""):`<tr><td colspan="9" class="empty">No matching inventory items.</td></tr>`;
+      <td>${esc(m.mfg||"—")}</td><td>${esc(m.rspu||"—")}</td><td>${money(m.rate)}</td>
+      <td>${esc(m.whQty||"—")}</td><td>${Number(m.qty)||0}</td><td>${esc(m.min||"—")}</td>
+      <td><span class="badge ${cls}">${label}</span></td>
+      <td class="actions-cell"><button class="secondary" data-edit="${esc(m.id)}">Edit</button>
+      <button class="danger" data-delete="${esc(m.id)}">Delete</button></td></tr>`;
+  }).join(""):`<tr><td colspan="11" class="empty">No matching items.</td></tr>`;
 }
 function renderSelects(){
   for(const [selectId,searchId] of [["movementMaterial","movementSearch"],["orderMaterial","orderSearch"]]){
     const select=$(selectId),term=$(searchId).value.trim().toLowerCase(),old=select.value;
-    const visible=materials.filter(m=>searchable([m.equipment,m.sap,m.description,m.mfg],term));
-    select.innerHTML=visible.map(m=>`<option value="${esc(m.id)}">${esc(m.equipment)} | ${esc(m.sap||"No SAP #")} | ${esc(m.description)}</option>`).join("");
-    if(visible.some(m=>String(m.id)===old))select.value=old;
+    const rows=materials.filter(m=>matches([m.equipment,m.sap,m.description,m.mfg],term));
+    select.innerHTML=rows.map(m=>`<option value="${esc(m.id)}">${esc(m.equipment)} | ${esc(m.sap||"No SAP #")} | ${esc(m.description)}</option>`).join("");
+    if(rows.some(m=>String(m.id)===old))select.value=old;
   }
 }
 function renderOrders(){
   const term=$("orderListSearch").value.trim().toLowerCase();
-  const rows=orders.filter(o=>searchable([o.equipment,o.sap,o.description,o.mfg,o.requestedBy,o.comment],term));
-  $("orderBody").innerHTML=rows.length?rows.map(o=>{
-    const total=(Number(o.rate)||0)*(Number(o.qty)||0);
-    return `<tr><td>${esc(o.equipment)}</td><td>${esc(o.sap||"—")}</td><td class="desc">${esc(o.description)}</td>
-      <td>${esc(o.mfg||"—")}</td><td>${Number(o.qty)||0}</td><td>${cash(o.rate)}</td><td>${cash(total)}</td>
-      <td class="actions-cell">
-        <button class="secondary" data-edit-order="${esc(o.id)}">Edit</button>
-        <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
-      </td></tr>`;
-  }).join(""):`<tr><td colspan="8" class="empty">No order items.</td></tr>`;
+  const rows=orders.filter(o=>matches([o.equipment,o.sap,o.description,o.mfg,o.requestedBy,o.comment],term));
+  $("orderBody").innerHTML=rows.length?rows.map(o=>`<tr>
+   <td>${esc(o.equipment)}</td><td>${esc(o.sap||"—")}</td><td class="desc">${esc(o.description)}</td>
+   <td>${esc(o.mfg||"—")}</td><td>${Number(o.qty)||0}</td><td>${money(o.rate)}</td>
+   <td>${money((Number(o.rate)||0)*(Number(o.qty)||0))}</td><td>${esc(o.requestedBy||"—")}</td>
+   <td class="actions-cell"><button class="secondary" data-edit-order="${esc(o.id)}">Edit</button>
+   <button class="danger" data-delete-order="${esc(o.id)}">Delete</button></td></tr>`).join("")
+   :`<tr><td colspan="9" class="empty">No order request items.</td></tr>`;
 }
 function renderLedger(){
   const term=$("trackerSearch").value.trim().toLowerCase();
-  const rows=[...ledger].reverse().filter(x=>searchable([x.date,x.type,x.equipment,x.sap,x.description,x.user,x.comment],term));
+  const rows=[...ledger].reverse().filter(x=>matches([x.type,x.equipment,x.sap,x.description,x.mfg,x.date,x.user,x.comment],term));
   $("trackerBody").innerHTML=rows.length?rows.map(x=>`<tr>
-    <td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${esc(x.equipment)}</td><td>${esc(x.sap||"—")}</td>
-    <td class="desc">${esc(x.description)}</td><td>${esc(x.qty)}</td><td>${esc(x.user||"—")}</td><td>${esc(x.comment||"")}</td>
-    <td class="actions-cell">
-      <button class="secondary" data-edit-ledger="${esc(x.id)}">Edit</button>
-      <button class="danger" data-delete-ledger="${esc(x.id)}">Delete</button>
-    </td></tr>`).join(""):`<tr><td colspan="9" class="empty">No matching movements.</td></tr>`;
+    <td>${esc(x.equipment)}</td><td>${esc(x.sap||"—")}</td><td class="desc">${esc(x.description)}</td>
+    <td>${esc(x.mfg||"—")}</td><td>${esc(x.type)}</td><td>${esc(x.qty)}</td>
+    <td>${esc(x.date)}</td><td>${esc(x.user||"—")}</td><td>${esc(x.comment||"")}</td>
+    <td class="actions-cell"><button class="secondary" data-edit-ledger="${esc(x.id)}">Edit</button>
+    <button class="danger" data-delete-ledger="${esc(x.id)}">Delete</button></td></tr>`).join("")
+    :`<tr><td colspan="10" class="empty">No tracker entries.</td></tr>`;
 }
 function render(){renderStats();renderInventory();renderSelects();renderOrders();renderLedger();}
 
-function clearItemForm(){
+function resetItemForm(){
   $("itemForm").reset();$("itemId").value="";$("qty").value=0;
-  $("itemTitle").textContent="Add New Inventory Item";
+  $("itemTitle").textContent="Add Inventory Item";
 }
 $("itemForm").addEventListener("submit",e=>{
   e.preventDefault();
   const id=$("itemId").value;
   const item={
     id:id||crypto.randomUUID(),
-    equipment:$("equipment").value.trim(),
-    sap:$("sap").value.trim(),
-    description:$("description").value.trim(),
-    mfg:$("mfg").value.trim(),
-    rate:$("rate").value===""?null:Number($("rate").value),
+    equipment:$("equipment").value.trim(),sap:$("sap").value.trim(),
+    description:$("description").value.trim(),mfg:$("mfg").value.trim(),
+    rspu:$("rspu").value.trim(),rate:$("rate").value===""?null:Number($("rate").value),
+    whQty:$("whQty").value===""?"":Number($("whQty").value),
     qty:Number($("qty").value)||0,
-    min:$("minQty").value===""?null:Number($("minQty").value)
+    min:$("minQty").value===""?"":Number($("minQty").value),
+    orderedDate:$("orderedDate").value,orderedQty:$("orderedQty").value,
+    reservation:$("reservation").value.trim(),pr:$("pr").value.trim(),
+    po:$("po").value.trim(),status:$("itemStatus").value.trim(),
+    comments:$("itemComments").value.trim()
   };
   if(id){
-    const i=materials.findIndex(m=>String(m.id)===String(id));
-    if(i>=0)materials[i]=item;
+    const index=materials.findIndex(m=>String(m.id)===String(id));
+    if(index>=0)materials[index]=item;
     ledger.filter(x=>String(x.materialId)===String(id)).forEach(x=>{
-      x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;
+      x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;x.mfg=item.mfg;
     });
     orders.filter(x=>String(x.materialId)===String(id)).forEach(x=>{
-      x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;x.mfg=item.mfg;x.rate=item.rate;
+      x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;
+      x.mfg=item.mfg;x.rate=item.rate;
     });
-  } else materials.push(item);
-  persist();clearItemForm();render();
+  }else materials.push(item);
+  persist();resetItemForm();render();
 });
-$("cancelEdit").addEventListener("click",clearItemForm);
+$("cancelEdit").addEventListener("click",resetItemForm);
 
 $("inventoryBody").addEventListener("click",e=>{
-  const editId=e.target.dataset.editMaterial;
-  const deleteId=e.target.dataset.deleteMaterial;
+  const editId=e.target.dataset.edit,deleteId=e.target.dataset.delete;
   if(editId){
     const m=itemById(editId);if(!m)return;
-    $("itemId").value=m.id;$("equipment").value=m.equipment||"";$("sap").value=m.sap||"";
+    $("itemId").value=m.id;
+    $("equipment").value=m.equipment||"";$("sap").value=m.sap||"";
     $("description").value=m.description||"";$("mfg").value=m.mfg||"";
-    $("rate").value=m.rate??"";$("qty").value=Number(m.qty)||0;$("minQty").value=m.min??"";
+    $("rspu").value=m.rspu??"";$("rate").value=m.rate??"";
+    $("whQty").value=m.whQty??"";$("qty").value=Number(m.qty)||0;
+    $("minQty").value=m.min??"";$("orderedDate").value=m.orderedDate||"";
+    $("orderedQty").value=m.orderedQty??"";$("reservation").value=m.reservation||"";
+    $("pr").value=m.pr||"";$("po").value=m.po||"";
+    $("itemStatus").value=m.status||"";$("itemComments").value=m.comments||"";
     $("itemTitle").textContent="Edit Inventory Item";
     $("itemForm").scrollIntoView({behavior:"smooth",block:"center"});
-    return;
-  }
-  if(deleteId){
-    const m=itemById(deleteId);if(!m)return;
-    if(!confirm(`Delete "${m.description}" from inventory? This also deletes its tracker entries and order lines.`))return;
+  }else if(deleteId){
+    const m=itemById(deleteId);
+    if(!m||!confirm(`Delete "${m.description}" and linked tracker/order rows?`))return;
     materials=materials.filter(x=>String(x.id)!==String(deleteId));
     ledger=ledger.filter(x=>String(x.materialId)!==String(deleteId));
     orders=orders.filter(x=>String(x.materialId)!==String(deleteId));
@@ -415,16 +440,17 @@ $("inventoryBody").addEventListener("click",e=>{
 });
 
 $("movementDate").value=today();
+$("orderDate").value=today();
 $("movementForm").addEventListener("submit",e=>{
   e.preventDefault();
-  const m=itemById($("movementMaterial").value),amount=Number($("movementQty").value);
-  if(!m||!Number.isInteger(amount)||amount<1)return alert("Select a material and enter a valid quantity.");
+  const m=itemById($("movementMaterial").value),qty=Number($("movementQty").value);
+  if(!m||!Number.isInteger(qty)||qty<1)return alert("Select a material and enter a positive whole-number quantity.");
   const type=$("movementType").value;
-  if(type==="Issue"&&(Number(m.qty)||0)<amount)return alert("Cannot issue more than the available quantity.");
-  m.qty=(Number(m.qty)||0)+(type==="Receipt"?amount:-amount);
+  if(type==="Issue"&&(Number(m.qty)||0)<qty)return alert("Issue quantity cannot exceed available inventory.");
+  m.qty=(Number(m.qty)||0)+(type==="Receipt"?qty:-qty);
   ledger.push({
-    id:crypto.randomUUID(),materialId:m.id,date:$("movementDate").value,type,
-    equipment:m.equipment,sap:m.sap,description:m.description,qty:amount,
+    id:crypto.randomUUID(),materialId:m.id,equipment:m.equipment,sap:m.sap,
+    description:m.description,mfg:m.mfg,type,qty,date:$("movementDate").value||today(),
     user:$("movementUser").value.trim(),comment:$("movementComment").value.trim()
   });
   persist();$("movementQty").value="";$("movementComment").value="";render();
@@ -433,216 +459,284 @@ $("movementForm").addEventListener("submit",e=>{
 $("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
   const m=itemById($("orderMaterial").value),qty=Number($("orderQty").value);
-  if(!m||!Number.isInteger(qty)||qty<1)return alert("Select a material and enter a valid order quantity.");
+  if(!m||!Number.isInteger(qty)||qty<1)return alert("Select a material and enter a positive whole-number order quantity.");
   orders.push({
     id:crypto.randomUUID(),materialId:m.id,equipment:m.equipment,sap:m.sap,
     description:m.description,mfg:m.mfg,rate:m.rate,qty,
-    requestedBy:$("orderBy").value.trim(),comment:$("orderComment").value.trim()
+    requestedBy:$("orderBy").value.trim(),orderedDate:$("orderDate").value,
+    pr:$("orderPR").value.trim(),po:$("orderPO").value.trim(),
+    status:$("orderStatus").value.trim(),comment:$("orderComment").value.trim()
   });
   persist();$("orderQty").value="";$("orderComment").value="";render();
 });
 
 $("orderBody").addEventListener("click",e=>{
-  const deleteId=e.target.dataset.deleteOrder;
-  const editId=e.target.dataset.editOrder;
-  if(deleteId){
-    const o=orders.find(x=>String(x.id)===String(deleteId));
-    if(!o||!confirm(`Delete order item "${o.description}"?`))return;
-    orders=orders.filter(x=>String(x.id)!==String(deleteId));
-    persist();render();return;
-  }
-  if(editId){
-    const o=orders.find(x=>String(x.id)===String(editId));if(!o)return;
-    const qtyText=prompt("Enter updated order quantity:",o.qty);
-    if(qtyText===null)return;
-    const qty=Number(qtyText);
-    if(!Number.isInteger(qty)||qty<1)return alert("Quantity must be a whole number greater than zero.");
-    const requestedBy=prompt("Requested by:",o.requestedBy||"");
-    if(requestedBy===null)return;
-    const comment=prompt("Supplier / comments:",o.comment||"");
-    if(comment===null)return;
-    o.qty=qty;o.requestedBy=requestedBy.trim();o.comment=comment.trim();
-    persist();render();
+  const del=e.target.dataset.deleteOrder,edit=e.target.dataset.editOrder;
+  if(del){
+    const o=orders.find(x=>String(x.id)===String(del));
+    if(o&&confirm(`Delete "${o.description}" from the order request?`)){
+      orders=orders.filter(x=>String(x.id)!==String(del));persist();render();
+    }
+  }else if(edit){
+    const o=orders.find(x=>String(x.id)===String(edit));if(!o)return;
+    const raw=prompt("Order quantity:",o.qty);if(raw===null)return;
+    const qty=Number(raw);if(!Number.isInteger(qty)||qty<1)return alert("Enter a positive whole number.");
+    o.qty=qty;persist();render();
   }
 });
 
-function applyMovementChange(entry,newQty){
-  const m=itemById(entry.materialId);
-  if(!m)return true;
-  const oldQty=Number(entry.qty)||0;
-  const delta=newQty-oldQty;
-  const adjusted=(Number(m.qty)||0)+(entry.type==="Receipt"?delta:-delta);
-  if(adjusted<0){alert("This change would make available inventory negative.");return false;}
-  m.qty=adjusted;
-  return true;
-}
 $("trackerBody").addEventListener("click",e=>{
-  const deleteId=e.target.dataset.deleteLedger;
-  const editId=e.target.dataset.editLedger;
-  if(deleteId){
-    const entry=ledger.find(x=>String(x.id)===String(deleteId));if(!entry)return;
-    if(!confirm(`Delete this ${entry.type} tracker entry? Inventory quantity will be adjusted.`))return;
-    const m=itemById(entry.materialId);
+  const del=e.target.dataset.deleteLedger,edit=e.target.dataset.editLedger;
+  if(del){
+    const x=ledger.find(v=>String(v.id)===String(del));if(!x)return;
+    if(!confirm("Delete this movement and reverse its inventory effect?"))return;
+    const m=itemById(x.materialId);
     if(m){
-      const qty=Number(entry.qty)||0;
-      const adjusted=(Number(m.qty)||0)+(entry.type==="Receipt"?-qty:qty);
-      if(adjusted<0)return alert("Cannot delete this receipt because it would make inventory negative.");
-      m.qty=adjusted;
+      const next=(Number(m.qty)||0)+(x.type==="Receipt"?-Number(x.qty):Number(x.qty));
+      if(next<0)return alert("Cannot delete this receipt; inventory would become negative.");
+      m.qty=next;
     }
-    ledger=ledger.filter(x=>String(x.id)!==String(deleteId));
-    persist();render();return;
-  }
-  if(editId){
-    const entry=ledger.find(x=>String(x.id)===String(editId));if(!entry)return;
-    const qtyText=prompt("Enter updated quantity:",entry.qty);
-    if(qtyText===null)return;
-    const qty=Number(qtyText);
-    if(!Number.isInteger(qty)||qty<1)return alert("Quantity must be a whole number greater than zero.");
-    if(!applyMovementChange(entry,qty))return;
-    const date=prompt("Date (YYYY-MM-DD):",entry.date||today());
-    if(date===null)return;
-    const user=prompt("Changed by:",entry.user||"");
-    if(user===null)return;
-    const comment=prompt("Comments:",entry.comment||"");
-    if(comment===null)return;
-    entry.qty=qty;entry.date=date;entry.user=user.trim();entry.comment=comment.trim();
+    ledger=ledger.filter(v=>String(v.id)!==String(del));persist();render();
+  }else if(edit){
+    const x=ledger.find(v=>String(v.id)===String(edit));if(!x)return;
+    const raw=prompt("Movement quantity:",x.qty);if(raw===null)return;
+    const qty=Number(raw);if(!Number.isInteger(qty)||qty<1)return alert("Enter a positive whole number.");
+    const m=itemById(x.materialId);
+    if(m){
+      const change=qty-(Number(x.qty)||0);
+      const next=(Number(m.qty)||0)+(x.type==="Receipt"?change:-change);
+      if(next<0)return alert("This change would make inventory negative.");
+      m.qty=next;
+    }
+    x.qty=qty;
+    x.date=prompt("Date (YYYY-MM-DD):",x.date)||x.date;
+    x.user=prompt("Changed By:",x.user||"")??x.user;
+    x.comment=prompt("Comments:",x.comment||"")??x.comment;
     persist();render();
   }
 });
 
 for(const id of ["inventorySearch","movementSearch","orderSearch","orderListSearch","trackerSearch"]){
   $(id).addEventListener("input",()=>{
-    if(id==="movementSearch"||id==="orderSearch")renderSelects();
-    else if(id==="inventorySearch")renderInventory();
+    if(id==="inventorySearch")renderInventory();
+    else if(id==="movementSearch"||id==="orderSearch")renderSelects();
     else if(id==="orderListSearch")renderOrders();
     else renderLedger();
   });
 }
 
-function downloadBlob(blob,name){
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+function requireXlsx(){
+  if(!window.XLSX){alert("Excel functions need an internet connection to load SheetJS.");return false;}
+  return true;
 }
-$("backupBtn").addEventListener("click",()=>{
-  downloadBlob(new Blob([JSON.stringify({materials,ledger,orders},null,2)],{type:"application/json"}),"lmp-jafura-backup.json");
-});
+function downloadJson(data,name){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$("backupBtn").addEventListener("click",()=>downloadJson({materials,ledger,orders},"LMP-Jafura-backup.json"));
 $("restoreBtn").addEventListener("click",()=>$("backupFile").click());
 $("backupFile").addEventListener("change",async e=>{
   const file=e.target.files[0];if(!file)return;
   try{
     const data=JSON.parse(await file.text());
-    if(!Array.isArray(data.materials))throw Error("Invalid backup file.");
-    materials=data.materials;ledger=Array.isArray(data.ledger)?data.ledger:[];orders=Array.isArray(data.orders)?data.orders:[];
-    materials.forEach((m,i)=>{if(!m.id)m.id="restored-"+i+"-"+crypto.randomUUID();});
-    ledger.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
-    orders.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
-    persist();render();alert("Backup imported.");
-  }catch(err){alert("Could not import backup: "+err.message);}
+    if(!Array.isArray(data.materials))throw new Error("Invalid backup file.");
+    materials=data.materials;ledger=Array.isArray(data.ledger)?data.ledger:[];
+    orders=Array.isArray(data.orders)?data.orders:[];
+    persist();render();alert("Backup restored.");
+  }catch(err){alert("Backup import failed: "+err.message);}
   e.target.value="";
 });
 
-function requireXlsx(){
-  if(!window.XLSX){alert("Excel support requires an internet connection to load SheetJS.");return false;}
-  return true;
+function setWidths(ws,widths){ws["!cols"]=widths.map(w=>({wch:w}));}
+function sheetFromRows(rows,headers){
+  const ws=XLSX.utils.json_to_sheet(rows,{header:headers});
+  setWidths(ws,headers.map(h=>Math.min(Math.max(h.length+3,14),48)));
+  return ws;
 }
 
-/* Exports a workbook with three sheets. */
+/* Export always creates the required sheet order and names. */
 $("exportExcelBtn").addEventListener("click",()=>{
   if(!requireXlsx())return;
 
-  const wb=XLSX.utils.book_new();
+  const inventoryHeaders=[
+    "Equipment","SAP #","Description","MFG P/N","RSPU","Rate $","W/H Qty",
+    "Avbl Qty","Inventory Required Qty","Ordered Date","Ordered Qty",
+    "Reservation","PR","PO","Status","Comments"
+  ];
+  const trackerHeaders=[
+    "Equipment","SAP #","Description","MFG P/N","Avbl Qty",
+    "Spare Received Qty","Spare Received Date","Consumption Qty",
+    "Bal Qty","Consumption Date","Changed By","Spare Ordered Qty",
+    "Spare Ordered By","Spare Ordered Date","Comments"
+  ];
+  const orderHeaders=[
+    "Equipment","SAP #","Description","MFG P/N","Order Qty","Rate $",
+    "Line Total","Requested By","Ordered Date","PR","PO","Status","Comments"
+  ];
 
-  const inventoryData=materials.map(m=>({
-    Equipment:m.equipment,
-    "SAP #":m.sap,
-    Description:m.description,
-    "MFG P/N":m.mfg,
-    "Rate $":m.rate,
-    "Avbl Qty":m.qty,
-    "Inventory Required Qty":m.min
+  const inventoryRows=materials.map(m=>({
+    "Equipment":m.equipment,"SAP #":m.sap,"Description":m.description,
+    "MFG P/N":m.mfg,"RSPU":m.rspu,"Rate $":m.rate,"W/H Qty":m.whQty,
+    "Avbl Qty":Number(m.qty)||0,"Inventory Required Qty":m.min,
+    "Ordered Date":m.orderedDate,"Ordered Qty":m.orderedQty,
+    "Reservation":m.reservation,"PR":m.pr,"PO":m.po,
+    "Status":m.status,"Comments":m.comments
   }));
 
-  const trackerData=ledger.map(x=>({
-    Equipment:x.equipment,
-    "SAP #":x.sap,
-    Description:x.description,
+  const trackerRows=ledger.map(x=>({
+    "Equipment":x.equipment,"SAP #":x.sap,"Description":x.description,
+    "MFG P/N":x.mfg,"Avbl Qty":x.availableQty??"",
     "Spare Received Qty":x.type==="Receipt"?x.qty:"",
     "Spare Received Date":x.type==="Receipt"?x.date:"",
     "Consumption Qty":x.type==="Issue"?x.qty:"",
+    "Bal Qty":x.balanceQty??"",
     "Consumption Date":x.type==="Issue"?x.date:"",
-    "Changed By":x.user,
-    Comments:x.comment
+    "Changed By":x.user,"Spare Ordered Qty":x.orderedQty??"",
+    "Spare Ordered By":x.orderedBy??"",
+    "Spare Ordered Date":x.orderedDate??"","Comments":x.comment
   }));
 
-  const orderData=orders.map(o=>({
-    Equipment:o.equipment,
-    "SAP #":o.sap,
-    Description:o.description,
-    "MFG P/N":o.mfg,
-    "Order Qty":o.qty,
-    "Rate $":o.rate,
+  const orderRows=orders.map(o=>({
+    "Equipment":o.equipment,"SAP #":o.sap,"Description":o.description,
+    "MFG P/N":o.mfg,"Order Qty":Number(o.qty)||0,"Rate $":o.rate,
     "Line Total":(Number(o.rate)||0)*(Number(o.qty)||0),
-    "Requested By":o.requestedBy,
-    Comments:o.comment
+    "Requested By":o.requestedBy,"Ordered Date":o.orderedDate,
+    "PR":o.pr,"PO":o.po,"Status":o.status,"Comments":o.comment
   }));
 
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(inventoryData),"Inventory");
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(trackerData),"Spare Consumption Tracker");
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(orderData),"Order Items");
-
-  XLSX.writeFile(wb,"LMP-Jafura_Inventory_Tracker_Orders.xlsx");
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,sheetFromRows(inventoryRows,inventoryHeaders),SHEETS.inventory);
+  XLSX.utils.book_append_sheet(wb,sheetFromRows(trackerRows,trackerHeaders),SHEETS.tracker);
+  XLSX.utils.book_append_sheet(wb,sheetFromRows(orderRows,orderHeaders),SHEETS.order);
+  XLSX.writeFile(wb,"LMP-Jafura_Spare_Inventory.xlsx");
 });
 
+/* Separate order-only export, if needed. */
 $("exportOrderBtn").addEventListener("click",()=>{
-  if(!orders.length)return alert("Add at least one item to the order first.");
   if(!requireXlsx())return;
-  const data=orders.map(o=>({
-    Equipment:o.equipment,"SAP #":o.sap,Description:o.description,"MFG P/N":o.mfg,
-    Quantity:o.qty,"Rate $":o.rate,"Line Total":(Number(o.rate)||0)*o.qty,
-    "Requested By":o.requestedBy,Comments:o.comment
+  const headers=["Equipment","SAP #","Description","MFG P/N","Order Qty","Rate $","Line Total","Requested By","Ordered Date","PR","PO","Status","Comments"];
+  const rows=orders.map(o=>({
+    "Equipment":o.equipment,"SAP #":o.sap,"Description":o.description,
+    "MFG P/N":o.mfg,"Order Qty":o.qty,"Rate $":o.rate,
+    "Line Total":(Number(o.rate)||0)*(Number(o.qty)||0),
+    "Requested By":o.requestedBy,"Ordered Date":o.orderedDate,
+    "PR":o.pr,"PO":o.po,"Status":o.status,"Comments":o.comment
   }));
-  const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Order Request");
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,sheetFromRows(rows,headers),SHEETS.order);
   XLSX.writeFile(wb,"LMP-Jafura_Order_Request.xlsx");
 });
 
-function keyName(x){return String(x??"").toLowerCase().replace(/[^a-z0-9]/g,"");}
-function findField(row,names){
-  const wanted=names.map(keyName);
-  const key=Object.keys(row).find(k=>wanted.includes(keyName(k)));
-  return key===undefined?undefined:row[key];
+function normKey(v){return String(v??"").toLowerCase().replace(/[^a-z0-9]/g,"");}
+function field(row,names){
+  const wanted=names.map(normKey);
+  const key=Object.keys(row).find(k=>wanted.includes(normKey(k)));
+  return key===undefined?"":row[key];
 }
+function dateString(value){
+  if(value instanceof Date)return value.toISOString().slice(0,10);
+  if(typeof value==="number"&&XLSX.SSF){
+    const d=XLSX.SSF.parse_date_code(value);
+    if(d)return `${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`;
+  }
+  return String(value??"").slice(0,10);
+}
+function numericOrBlank(value){
+  if(value===""||value==null)return "";
+  const n=Number(value);return Number.isFinite(n)?n:"";
+}
+
+/* Import reads the same three named sheets. Existing data can be replaced or appended. */
 $("importExcelBtn").addEventListener("click",()=>$("excelFile").click());
 $("excelFile").addEventListener("change",async e=>{
   const file=e.target.files[0];if(!file)return;
   if(!requireXlsx()){e.target.value="";return;}
+
   try{
-    const wb=XLSX.read(await file.arrayBuffer(),{type:"array"}),rows=[];
-    for(const name of wb.SheetNames){
-      for(const row of XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:""})){
-        const description=findField(row,["Description"]),equipment=findField(row,["Equipment"]);
-        if(!description||!equipment)continue;
-        const sap=findField(row,["SAP #","SAP"]),mfg=findField(row,["MFG P/N","MFG PN"]);
-        const rate=findField(row,["Rate $","Rate"]),qty=findField(row,["Avbl Qty","Available Qty","Bal Qty"]);
-        const min=findField(row,["Inventory Required Qty","Required Qty"]);
-        rows.push({
-          id:crypto.randomUUID(),equipment:String(equipment),sap:String(sap??""),
-          description:String(description),mfg:String(mfg??""),
-          rate:rate===""||rate==null?null:Number(rate),qty:Number(qty)||0,
-          min:min===""||min==null?null:Number(min)
-        });
-      }
+    const wb=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});
+    const inventorySheet=wb.Sheets[SHEETS.inventory];
+    if(!inventorySheet)throw new Error(`Missing sheet "${SHEETS.inventory}".`);
+
+    const invRows=XLSX.utils.sheet_to_json(inventorySheet,{defval:""});
+    const trackerRows=wb.Sheets[SHEETS.tracker]
+      ?XLSX.utils.sheet_to_json(wb.Sheets[SHEETS.tracker],{defval:""}):[];
+    const orderRows=wb.Sheets[SHEETS.order]
+      ?XLSX.utils.sheet_to_json(wb.Sheets[SHEETS.order],{defval:""}):[];
+
+    const importedMaterials=invRows
+      .filter(r=>field(r,["Equipment"])&&field(r,["Description"]))
+      .map(r=>({
+        id:crypto.randomUUID(),
+        equipment:String(field(r,["Equipment"])),
+        sap:String(field(r,["SAP #","SAP"])),
+        description:String(field(r,["Description"])),
+        mfg:String(field(r,["MFG P/N","MFG PN"])),
+        rspu:field(r,["RSPU"]),
+        rate:numericOrBlank(field(r,["Rate $","Rate"])),
+        whQty:field(r,["W/H Qty","WH Qty"]),
+        qty:Number(field(r,["Avbl Qty","Available Qty"]))||0,
+        min:numericOrBlank(field(r,["Inventory Required Qty","Required Qty"])),
+        orderedDate:dateString(field(r,["Ordered Date"])),
+        orderedQty:field(r,["Ordered Qty"]),
+        reservation:field(r,["Reservation"]),pr:field(r,["PR"]),po:field(r,["PO"]),
+        status:field(r,["Status"]),comments:field(r,["Comments"])
+      }));
+
+    const importedLedger=trackerRows.filter(r=>field(r,["Description"])).map(r=>{
+      const received=Number(field(r,["Spare Received Qty"]))||0;
+      const consumed=Number(field(r,["Consumption Qty"]))||0;
+      const receipt=received>0;
+      return {
+        id:crypto.randomUUID(),equipment:String(field(r,["Equipment"])),
+        sap:String(field(r,["SAP #","SAP"])),description:String(field(r,["Description"])),
+        mfg:String(field(r,["MFG P/N","MFG PN"])),type:receipt?"Receipt":"Issue",
+        qty:receipt?received:consumed,
+        date:dateString(receipt?field(r,["Spare Received Date"]):field(r,["Consumption Date"])),
+        user:String(field(r,["Changed By"])),comment:String(field(r,["Comments"])),
+        availableQty:field(r,["Avbl Qty"]),balanceQty:field(r,["Bal Qty"]),
+        orderedQty:field(r,["Spare Ordered Qty"]),orderedBy:field(r,["Spare Ordered By"]),
+        orderedDate:dateString(field(r,["Spare Ordered Date"]))
+      };
+    });
+
+    const importedOrders=orderRows.filter(r=>field(r,["Description"])).map(r=>({
+      id:crypto.randomUUID(),equipment:String(field(r,["Equipment"])),
+      sap:String(field(r,["SAP #","SAP"])),description:String(field(r,["Description"])),
+      mfg:String(field(r,["MFG P/N","MFG PN"])),
+      qty:Number(field(r,["Order Qty","Quantity"]))||0,
+      rate:numericOrBlank(field(r,["Rate $","Rate"])),
+      requestedBy:String(field(r,["Requested By"])),
+      orderedDate:dateString(field(r,["Ordered Date"])),
+      pr:String(field(r,["PR"])),po:String(field(r,["PO"])),
+      status:String(field(r,["Status"])),comment:String(field(r,["Comments"]))
+    }));
+
+    const replace=confirm(
+      `Read ${importedMaterials.length} inventory items, ${importedLedger.length} tracker entries, `+
+      `and ${importedOrders.length} order rows.\n\nOK = replace current data. Cancel = append imported rows.`
+    );
+    if(replace){materials=importedMaterials;ledger=importedLedger;orders=importedOrders;}
+    else{materials.push(...importedMaterials);ledger.push(...importedLedger);orders.push(...importedOrders);}
+
+    for(const x of ledger){
+      const m=materials.find(m=>(x.sap&&m.sap===x.sap)||(m.equipment===x.equipment&&m.description===x.description));
+      if(m)x.materialId=m.id;
     }
-    if(!rows.length)throw Error("No inventory rows found. The workbook needs Equipment and Description columns.");
-    const replace=confirm(`Found ${rows.length} inventory rows. OK replaces current inventory; Cancel adds the rows.`);
-    if(replace)materials=rows;else materials.push(...rows);
-    persist();render();alert(`Imported ${rows.length} inventory rows.`);
-  }catch(err){alert("Import failed: "+err.message);}
+    for(const o of orders){
+      const m=materials.find(m=>(o.sap&&m.sap===o.sap)||(m.equipment===o.equipment&&m.description===o.description));
+      if(m)o.materialId=m.id;
+    }
+
+    persist();render();
+    alert("Imported the inventory, Spare Consumption Tracker, and Order Request sheets.");
+  }catch(err){alert("Workbook import failed: "+err.message);}
   e.target.value="";
 });
 
-persist();
 $("movementDate").value=today();
+$("orderDate").value=today();
+persist();
 render();
 </script>
 </body>
