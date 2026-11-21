@@ -18,7 +18,7 @@ input,select{width:100%;min-height:36px;padding:7px 9px;border:1px solid #bdc9d4
 button{border:0;border-radius:5px;padding:8px 12px;min-height:34px;cursor:pointer;font-weight:bold}
 button.primary{color:white;background:var(--blue)}button.secondary{color:var(--navy);background:#e8eef4}
 button.danger{color:#982b2b;background:#fbe8e8}button:hover{filter:brightness(.96)}
-.search{max-width:360px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:850px}
+.search{max-width:360px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:950px}
 th,td{padding:9px 10px;border-bottom:1px solid #e5ebf0;text-align:left;vertical-align:top}
 th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc{min-width:240px}
 .badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:bold}
@@ -27,6 +27,7 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
 .stat{padding:12px;background:white;border:1px solid var(--border);border-radius:7px}
 .stat strong{display:block;color:var(--navy);font-size:20px}.stat span,.note{color:var(--muted);font-size:12px}
 .empty{padding:18px;color:var(--muted);text-align:center}
+.actions-cell{white-space:nowrap}
 @media(max-width:600px){main{padding:12px}header{padding:15px}}
 </style>
 </head>
@@ -133,7 +134,7 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
       <input id="trackerSearch" class="search" placeholder="Search material, date, user, or comment">
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Date</th><th>Type</th><th>Equipment</th><th>SAP #</th><th>Description</th><th>Qty</th><th>Changed by</th><th>Comments</th></tr></thead>
+      <thead><tr><th>Date</th><th>Type</th><th>Equipment</th><th>SAP #</th><th>Description</th><th>Qty</th><th>Changed by</th><th>Comments</th><th>Action</th></tr></thead>
       <tbody id="trackerBody"></tbody>
     </table></div>
   </section>
@@ -281,25 +282,32 @@ const initialMaterials = [
   ["500 Series Lobe Pump","737244","WRAPFLEX ELEMENT AND COVER, #102494 (Coupling)","",null,2,""]
 ].map((r,i)=>({id:"seed-"+i,equipment:r[0],sap:r[1],description:r[2],mfg:r[3],rate:r[4],qty:r[5],min:r[6]}));
 
-let state;
-try { state = JSON.parse(localStorage.getItem(DB_KEY) || "null"); } catch { state = null; }
-if (!state || !Array.isArray(state.materials)) state = {materials:initialMaterials,ledger:[],orders:[]};
-if (!Array.isArray(state.ledger)) state.ledger=[];
-if (!Array.isArray(state.orders)) state.orders=[];
-let materials=state.materials, ledger=state.ledger, orders=state.orders;
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(DB_KEY)||"null");}
+  catch{return null;}
+}
+let state=loadState();
+if(!state||!Array.isArray(state.materials))state={materials:initialMaterials,ledger:[],orders:[]};
+let materials=state.materials;
+let ledger=Array.isArray(state.ledger)?state.ledger:[];
+let orders=Array.isArray(state.orders)?state.orders:[];
+
+// Add IDs/movement links for saved data from earlier app versions.
+materials.forEach((m,i)=>{if(!m.id)m.id="restored-"+i+"-"+crypto.randomUUID();});
+ledger.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
+orders.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
 
 function persist(){localStorage.setItem(DB_KEY,JSON.stringify({materials,ledger,orders}));}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function cash(v){return v==null||v===""||!Number.isFinite(Number(v))?"—":"$"+Number(v).toFixed(2);}
 function itemById(id){return materials.find(m=>String(m.id)===String(id));}
+function searchable(values,term){return !term||values.join(" ").toLowerCase().includes(term.trim().toLowerCase());}
 function status(m){
-  const q=Number(m.qty)||0, min=Number(m.min)||0;
+  const q=Number(m.qty)||0,min=Number(m.min)||0;
   if(q<=0)return["Out of stock","out"];
   if(min>0&&q<min)return["Low stock","low"];
   return["In stock","ok"];
 }
-function searchable(values,term){return !term||values.join(" ").toLowerCase().includes(term.trim().toLowerCase());}
-
 function renderStats(){
   $("statItems").textContent=materials.length;
   $("statUnits").textContent=materials.reduce((s,m)=>s+(Number(m.qty)||0),0);
@@ -311,15 +319,19 @@ function renderInventory(){
   const rows=materials.filter(m=>searchable([m.equipment,m.sap,m.description,m.mfg],term));
   $("inventoryBody").innerHTML=rows.length?rows.map(m=>{
     const [text,cls]=status(m);
-    return `<tr><td>${esc(m.equipment)}</td><td>${esc(m.sap||"—")}</td><td class="desc">${esc(m.description)}</td>
+    return `<tr>
+      <td>${esc(m.equipment)}</td><td>${esc(m.sap||"—")}</td><td class="desc">${esc(m.description)}</td>
       <td>${esc(m.mfg||"—")}</td><td>${cash(m.rate)}</td><td>${Number(m.qty)||0}</td>
       <td>${m.min==null||m.min===""?"—":esc(m.min)}</td><td><span class="badge ${cls}">${text}</span></td>
-      <td><button class="secondary" data-edit="${esc(m.id)}">Edit</button></td></tr>`;
+      <td class="actions-cell">
+        <button class="secondary" data-edit-material="${esc(m.id)}">Edit</button>
+        <button class="danger" data-delete-material="${esc(m.id)}">Delete</button>
+      </td></tr>`;
   }).join(""):`<tr><td colspan="9" class="empty">No matching inventory items.</td></tr>`;
 }
 function renderSelects(){
   for(const [selectId,searchId] of [["movementMaterial","movementSearch"],["orderMaterial","orderSearch"]]){
-    const select=$(selectId), term=$(searchId).value.trim().toLowerCase(), old=select.value;
+    const select=$(selectId),term=$(searchId).value.trim().toLowerCase(),old=select.value;
     const visible=materials.filter(m=>searchable([m.equipment,m.sap,m.description,m.mfg],term));
     select.innerHTML=visible.map(m=>`<option value="${esc(m.id)}">${esc(m.equipment)} | ${esc(m.sap||"No SAP #")} | ${esc(m.description)}</option>`).join("");
     if(visible.some(m=>String(m.id)===old))select.value=old;
@@ -329,45 +341,82 @@ function renderOrders(){
   const term=$("orderListSearch").value.trim().toLowerCase();
   const rows=orders.filter(o=>searchable([o.equipment,o.sap,o.description,o.mfg,o.requestedBy,o.comment],term));
   $("orderBody").innerHTML=rows.length?rows.map(o=>{
-    const rate=Number(o.rate)||0,total=rate*(Number(o.qty)||0);
+    const total=(Number(o.rate)||0)*(Number(o.qty)||0);
     return `<tr><td>${esc(o.equipment)}</td><td>${esc(o.sap||"—")}</td><td class="desc">${esc(o.description)}</td>
       <td>${esc(o.mfg||"—")}</td><td>${Number(o.qty)||0}</td><td>${cash(o.rate)}</td><td>${cash(total)}</td>
-      <td><button class="danger" data-remove-order="${esc(o.id)}">Remove</button></td></tr>`;
+      <td class="actions-cell">
+        <button class="secondary" data-edit-order="${esc(o.id)}">Edit</button>
+        <button class="danger" data-delete-order="${esc(o.id)}">Delete</button>
+      </td></tr>`;
   }).join(""):`<tr><td colspan="8" class="empty">No order items.</td></tr>`;
 }
 function renderLedger(){
   const term=$("trackerSearch").value.trim().toLowerCase();
   const rows=[...ledger].reverse().filter(x=>searchable([x.date,x.type,x.equipment,x.sap,x.description,x.user,x.comment],term));
-  $("trackerBody").innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.type)}</td>
-    <td>${esc(x.equipment)}</td><td>${esc(x.sap||"—")}</td><td class="desc">${esc(x.description)}</td>
-    <td>${esc(x.qty)}</td><td>${esc(x.user||"—")}</td><td>${esc(x.comment||"")}</td></tr>`).join("")
-    :`<tr><td colspan="8" class="empty">No matching movements.</td></tr>`;
+  $("trackerBody").innerHTML=rows.length?rows.map(x=>`<tr>
+    <td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${esc(x.equipment)}</td><td>${esc(x.sap||"—")}</td>
+    <td class="desc">${esc(x.description)}</td><td>${esc(x.qty)}</td><td>${esc(x.user||"—")}</td><td>${esc(x.comment||"")}</td>
+    <td class="actions-cell">
+      <button class="secondary" data-edit-ledger="${esc(x.id)}">Edit</button>
+      <button class="danger" data-delete-ledger="${esc(x.id)}">Delete</button>
+    </td></tr>`).join(""):`<tr><td colspan="9" class="empty">No matching movements.</td></tr>`;
 }
 function render(){renderStats();renderInventory();renderSelects();renderOrders();renderLedger();}
 
 function clearItemForm(){
-  $("itemForm").reset();$("itemId").value="";$("qty").value=0;$("itemTitle").textContent="Add New Inventory Item";
+  $("itemForm").reset();$("itemId").value="";$("qty").value=0;
+  $("itemTitle").textContent="Add New Inventory Item";
 }
 $("itemForm").addEventListener("submit",e=>{
   e.preventDefault();
   const id=$("itemId").value;
-  const item={id:id||crypto.randomUUID(),equipment:$("equipment").value.trim(),sap:$("sap").value.trim(),
-    description:$("description").value.trim(),mfg:$("mfg").value.trim(),
-    rate:$("rate").value===""?null:Number($("rate").value),qty:Number($("qty").value)||0,
-    min:$("minQty").value===""?null:Number($("minQty").value)};
-  if(id){const i=materials.findIndex(m=>String(m.id)===id);if(i>=0)materials[i]=item;}
-  else materials.push(item);
+  const item={
+    id:id||crypto.randomUUID(),
+    equipment:$("equipment").value.trim(),
+    sap:$("sap").value.trim(),
+    description:$("description").value.trim(),
+    mfg:$("mfg").value.trim(),
+    rate:$("rate").value===""?null:Number($("rate").value),
+    qty:Number($("qty").value)||0,
+    min:$("minQty").value===""?null:Number($("minQty").value)
+  };
+  if(id){
+    const i=materials.findIndex(m=>String(m.id)===String(id));
+    if(i>=0)materials[i]=item;
+    // Keep tracker/order descriptions current when editing inventory details.
+    ledger.filter(x=>String(x.materialId)===String(id)).forEach(x=>{
+      x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;
+    });
+    orders.filter(x=>String(x.materialId)===String(id)).forEach(x=>{
+      x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;x.mfg=item.mfg;x.rate=item.rate;
+    });
+  } else materials.push(item);
   persist();clearItemForm();render();
 });
 $("cancelEdit").addEventListener("click",clearItemForm);
+
 $("inventoryBody").addEventListener("click",e=>{
-  const id=e.target.dataset.edit;if(!id)return;
-  const m=itemById(id);if(!m)return;
-  $("itemId").value=m.id;$("equipment").value=m.equipment||"";$("sap").value=m.sap||"";
-  $("description").value=m.description||"";$("mfg").value=m.mfg||"";
-  $("rate").value=m.rate??"";$("qty").value=Number(m.qty)||0;$("minQty").value=m.min??"";
-  $("itemTitle").textContent="Edit Inventory Item";
-  $("itemForm").scrollIntoView({behavior:"smooth",block:"center"});
+  const editId=e.target.dataset.editMaterial;
+  const deleteId=e.target.dataset.deleteMaterial;
+
+  if(editId){
+    const m=itemById(editId);if(!m)return;
+    $("itemId").value=m.id;$("equipment").value=m.equipment||"";$("sap").value=m.sap||"";
+    $("description").value=m.description||"";$("mfg").value=m.mfg||"";
+    $("rate").value=m.rate??"";$("qty").value=Number(m.qty)||0;$("minQty").value=m.min??"";
+    $("itemTitle").textContent="Edit Inventory Item";
+    $("itemForm").scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+
+  if(deleteId){
+    const m=itemById(deleteId);if(!m)return;
+    if(!confirm(`Delete "${m.description}" from inventory? This also deletes its tracker entries and order lines.`))return;
+    materials=materials.filter(x=>String(x.id)!==String(deleteId));
+    ledger=ledger.filter(x=>String(x.materialId)!==String(deleteId));
+    orders=orders.filter(x=>String(x.materialId)!==String(deleteId));
+    persist();render();
+  }
 });
 
 $("movementDate").value=today();
@@ -378,24 +427,108 @@ $("movementForm").addEventListener("submit",e=>{
   const type=$("movementType").value;
   if(type==="Issue"&&(Number(m.qty)||0)<amount)return alert("Cannot issue more than the available quantity.");
   m.qty=(Number(m.qty)||0)+(type==="Receipt"?amount:-amount);
-  ledger.push({id:crypto.randomUUID(),date:$("movementDate").value,type,equipment:m.equipment,sap:m.sap,
-    description:m.description,qty:amount,user:$("movementUser").value.trim(),comment:$("movementComment").value.trim()});
+  ledger.push({
+    id:crypto.randomUUID(),materialId:m.id,date:$("movementDate").value,type,
+    equipment:m.equipment,sap:m.sap,description:m.description,qty:amount,
+    user:$("movementUser").value.trim(),comment:$("movementComment").value.trim()
+  });
   persist();$("movementQty").value="";$("movementComment").value="";render();
 });
+
 $("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
   const m=itemById($("orderMaterial").value),qty=Number($("orderQty").value);
   if(!m||!Number.isInteger(qty)||qty<1)return alert("Select a material and enter a valid order quantity.");
-  orders.push({id:crypto.randomUUID(),equipment:m.equipment,sap:m.sap,description:m.description,mfg:m.mfg,
-    rate:m.rate,qty,requestedBy:$("orderBy").value.trim(),comment:$("orderComment").value.trim()});
+  orders.push({
+    id:crypto.randomUUID(),materialId:m.id,equipment:m.equipment,sap:m.sap,
+    description:m.description,mfg:m.mfg,rate:m.rate,qty,
+    requestedBy:$("orderBy").value.trim(),comment:$("orderComment").value.trim()
+  });
   persist();$("orderQty").value="";$("orderComment").value="";render();
 });
+
 $("orderBody").addEventListener("click",e=>{
-  const id=e.target.dataset.removeOrder;if(!id)return;
-  orders=orders.filter(o=>String(o.id)!==id);persist();render();
+  const deleteId=e.target.dataset.deleteOrder;
+  const editId=e.target.dataset.editOrder;
+
+  if(deleteId){
+    const o=orders.find(x=>String(x.id)===String(deleteId));
+    if(!o||!confirm(`Delete order item "${o.description}"?`))return;
+    orders=orders.filter(x=>String(x.id)!==String(deleteId));
+    persist();render();return;
+  }
+
+  if(editId){
+    const o=orders.find(x=>String(x.id)===String(editId));if(!o)return;
+    const qtyText=prompt("Enter updated order quantity:",o.qty);
+    if(qtyText===null)return;
+    const qty=Number(qtyText);
+    if(!Number.isInteger(qty)||qty<1)return alert("Quantity must be a whole number greater than zero.");
+    const requestedBy=prompt("Requested by:",o.requestedBy||"");
+    if(requestedBy===null)return;
+    const comment=prompt("Supplier / comments:",o.comment||"");
+    if(comment===null)return;
+    o.qty=qty;o.requestedBy=requestedBy.trim();o.comment=comment.trim();
+    persist();render();
+  }
 });
-for(const id of ["inventorySearch","movementSearch","orderSearch","orderListSearch","trackerSearch"])
-  $(id).addEventListener("input",()=>{if(id==="movementSearch"||id==="orderSearch")renderSelects();else if(id==="inventorySearch")renderInventory();else if(id==="orderListSearch")renderOrders();else renderLedger();});
+
+function applyMovementChange(entry,newQty){
+  const m=itemById(entry.materialId);
+  if(!m)return true;
+  const oldQty=Number(entry.qty)||0;
+  const delta=newQty-oldQty;
+  const adjusted=(Number(m.qty)||0)+(entry.type==="Receipt"?delta:-delta);
+  if(adjusted<0){alert("This change would make available inventory negative.");return false;}
+  m.qty=adjusted;
+  return true;
+}
+$("trackerBody").addEventListener("click",e=>{
+  const deleteId=e.target.dataset.deleteLedger;
+  const editId=e.target.dataset.editLedger;
+
+  if(deleteId){
+    const entry=ledger.find(x=>String(x.id)===String(deleteId));if(!entry)return;
+    if(!confirm(`Delete this ${entry.type} tracker entry? Inventory quantity will be adjusted.`))return;
+    const m=itemById(entry.materialId);
+    if(m){
+      const qty=Number(entry.qty)||0;
+      const adjusted=(Number(m.qty)||0)+(entry.type==="Receipt"?-qty:qty);
+      if(adjusted<0)return alert("Cannot delete this receipt because it would make inventory negative.");
+      m.qty=adjusted;
+    }
+    ledger=ledger.filter(x=>String(x.id)!==String(deleteId));
+    persist();render();return;
+  }
+
+  if(editId){
+    const entry=ledger.find(x=>String(x.id)===String(editId));if(!entry)return;
+    const qtyText=prompt("Enter updated quantity:",entry.qty);
+    if(qtyText===null)return;
+    const qty=Number(qtyText);
+    if(!Number.isInteger(qty)||qty<1)return alert("Quantity must be a whole number greater than zero.");
+    if(!applyMovementChange(entry,qty))return;
+
+    const date=prompt("Date (YYYY-MM-DD):",entry.date||today());
+    if(date===null)return;
+    const user=prompt("Changed by:",entry.user||"");
+    if(user===null)return;
+    const comment=prompt("Comments:",entry.comment||"");
+    if(comment===null)return;
+
+    entry.qty=qty;entry.date=date;entry.user=user.trim();entry.comment=comment.trim();
+    persist();render();
+  }
+});
+
+for(const id of ["inventorySearch","movementSearch","orderSearch","orderListSearch","trackerSearch"]){
+  $(id).addEventListener("input",()=>{
+    if(id==="movementSearch"||id==="orderSearch")renderSelects();
+    else if(id==="inventorySearch")renderInventory();
+    else if(id==="orderListSearch")renderOrders();
+    else renderLedger();
+  });
+}
 
 function downloadBlob(blob,name){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();
@@ -411,55 +544,60 @@ $("backupFile").addEventListener("change",async e=>{
     const data=JSON.parse(await file.text());
     if(!Array.isArray(data.materials))throw Error("Invalid backup file.");
     materials=data.materials;ledger=Array.isArray(data.ledger)?data.ledger:[];orders=Array.isArray(data.orders)?data.orders:[];
+    materials.forEach((m,i)=>{if(!m.id)m.id="restored-"+i+"-"+crypto.randomUUID();});
+    ledger.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
+    orders.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
     persist();render();alert("Backup imported.");
   }catch(err){alert("Could not import backup: "+err.message);}
   e.target.value="";
 });
 
-function requireXlsx(){if(!window.XLSX){alert("Excel support requires an internet connection to load SheetJS.");return false;}return true;}
+function requireXlsx(){
+  if(!window.XLSX){alert("Excel support requires an internet connection to load SheetJS.");return false;}
+  return true;
+}
 $("exportExcelBtn").addEventListener("click",()=>{
   if(!requireXlsx())return;
   const data=materials.map(m=>({Equipment:m.equipment,"SAP #":m.sap,Description:m.description,"MFG P/N":m.mfg,
     "Rate $":m.rate,"Avbl Qty":m.qty,"Inventory Required Qty":m.min}));
-  const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Inventory");
-  XLSX.writeFile(wb,"LMP-Jafura_Inventory.xlsx");
+  const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Inventory");XLSX.writeFile(wb,"LMP-Jafura_Inventory.xlsx");
 });
 $("exportOrderBtn").addEventListener("click",()=>{
   if(!orders.length)return alert("Add at least one item to the order first.");
   if(!requireXlsx())return;
   const data=orders.map(o=>({Equipment:o.equipment,"SAP #":o.sap,Description:o.description,"MFG P/N":o.mfg,
-    Quantity:o.qty,"Rate $":o.rate,"Line Total":(Number(o.rate)||0)*o.qty,"Requested By":o.requestedBy,Comments:o.comment}));
-  const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Order Request");
-  XLSX.writeFile(wb,"LMP-Jafura_Order_Request.xlsx");
+    Quantity:o.qty,"Rate $":o.rate,"Line Total":(Number(o.rate)||0)*o.qty,
+    "Requested By":o.requestedBy,Comments:o.comment}));
+  const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Order Request");XLSX.writeFile(wb,"LMP-Jafura_Order_Request.xlsx");
 });
 
 function keyName(x){return String(x??"").toLowerCase().replace(/[^a-z0-9]/g,"");}
 function findField(row,names){
-  const keys=Object.keys(row),wanted=names.map(keyName);
-  const found=keys.find(k=>wanted.includes(keyName(k)));
-  return found===undefined?undefined:row[found];
+  const wanted=names.map(keyName);
+  const key=Object.keys(row).find(k=>wanted.includes(keyName(k)));
+  return key===undefined?undefined:row[key];
 }
 $("importExcelBtn").addEventListener("click",()=>$("excelFile").click());
 $("excelFile").addEventListener("change",async e=>{
   const file=e.target.files[0];if(!file)return;
   if(!requireXlsx()){e.target.value="";return;}
   try{
-    const wb=XLSX.read(await file.arrayBuffer(),{type:"array"});
-    const rows=[];
+    const wb=XLSX.read(await file.arrayBuffer(),{type:"array"}),rows=[];
     for(const name of wb.SheetNames){
-      const sheet=XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:""});
-      for(const row of sheet){
-        const description=findField(row,["Description"]);
-        const equipment=findField(row,["Equipment"]);
+      for(const row of XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:""})){
+        const description=findField(row,["Description"]),equipment=findField(row,["Equipment"]);
         if(!description||!equipment)continue;
-        const sap=findField(row,["SAP #","SAP"]);
-        const mfg=findField(row,["MFG P/N","MFG PN"]);
-        const rate=findField(row,["Rate $","Rate"]);
-        const qty=findField(row,["Avbl Qty","Available Qty","Bal Qty"]);
+        const sap=findField(row,["SAP #","SAP"]),mfg=findField(row,["MFG P/N","MFG PN"]);
+        const rate=findField(row,["Rate $","Rate"]),qty=findField(row,["Avbl Qty","Available Qty","Bal Qty"]);
         const min=findField(row,["Inventory Required Qty","Required Qty"]);
-        rows.push({id:crypto.randomUUID(),equipment:String(equipment),sap:String(sap??""),
-          description:String(description),mfg:String(mfg??""),rate:rate===""||rate==null?null:Number(rate),
-          qty:Number(qty)||0,min:min===""||min==null?null:Number(min)});
+        rows.push({
+          id:crypto.randomUUID(),equipment:String(equipment),sap:String(sap??""),
+          description:String(description),mfg:String(mfg??""),
+          rate:rate===""||rate==null?null:Number(rate),qty:Number(qty)||0,
+          min:min===""||min==null?null:Number(min)
+        });
       }
     }
     if(!rows.length)throw Error("No inventory rows found. The workbook needs Equipment and Description columns.");
@@ -470,6 +608,8 @@ $("excelFile").addEventListener("change",async e=>{
   e.target.value="";
 });
 
+persist();
+$("movementDate").value=today();
 render();
 </script>
 </body>
