@@ -44,7 +44,7 @@ th{position:sticky;top:0;background:#f0f4f7;color:#435363;font-size:12px}td.desc
     <input id="backupFile" type="file" accept=".json" hidden>
     <button class="secondary" id="importExcelBtn">Import workbook (.xlsx)</button>
     <input id="excelFile" type="file" accept=".xlsx,.xls" hidden>
-    <button class="secondary" id="exportExcelBtn">Export inventory (.xlsx)</button>
+    <button class="secondary" id="exportExcelBtn">Export workbook (.xlsx)</button>
   </div>
 
   <div class="stats">
@@ -291,8 +291,6 @@ if(!state||!Array.isArray(state.materials))state={materials:initialMaterials,led
 let materials=state.materials;
 let ledger=Array.isArray(state.ledger)?state.ledger:[];
 let orders=Array.isArray(state.orders)?state.orders:[];
-
-// Add IDs/movement links for saved data from earlier app versions.
 materials.forEach((m,i)=>{if(!m.id)m.id="restored-"+i+"-"+crypto.randomUUID();});
 ledger.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
 orders.forEach(x=>{if(!x.id)x.id=crypto.randomUUID();});
@@ -383,7 +381,6 @@ $("itemForm").addEventListener("submit",e=>{
   if(id){
     const i=materials.findIndex(m=>String(m.id)===String(id));
     if(i>=0)materials[i]=item;
-    // Keep tracker/order descriptions current when editing inventory details.
     ledger.filter(x=>String(x.materialId)===String(id)).forEach(x=>{
       x.equipment=item.equipment;x.sap=item.sap;x.description=item.description;
     });
@@ -398,7 +395,6 @@ $("cancelEdit").addEventListener("click",clearItemForm);
 $("inventoryBody").addEventListener("click",e=>{
   const editId=e.target.dataset.editMaterial;
   const deleteId=e.target.dataset.deleteMaterial;
-
   if(editId){
     const m=itemById(editId);if(!m)return;
     $("itemId").value=m.id;$("equipment").value=m.equipment||"";$("sap").value=m.sap||"";
@@ -408,7 +404,6 @@ $("inventoryBody").addEventListener("click",e=>{
     $("itemForm").scrollIntoView({behavior:"smooth",block:"center"});
     return;
   }
-
   if(deleteId){
     const m=itemById(deleteId);if(!m)return;
     if(!confirm(`Delete "${m.description}" from inventory? This also deletes its tracker entries and order lines.`))return;
@@ -450,14 +445,12 @@ $("orderForm").addEventListener("submit",e=>{
 $("orderBody").addEventListener("click",e=>{
   const deleteId=e.target.dataset.deleteOrder;
   const editId=e.target.dataset.editOrder;
-
   if(deleteId){
     const o=orders.find(x=>String(x.id)===String(deleteId));
     if(!o||!confirm(`Delete order item "${o.description}"?`))return;
     orders=orders.filter(x=>String(x.id)!==String(deleteId));
     persist();render();return;
   }
-
   if(editId){
     const o=orders.find(x=>String(x.id)===String(editId));if(!o)return;
     const qtyText=prompt("Enter updated order quantity:",o.qty);
@@ -486,7 +479,6 @@ function applyMovementChange(entry,newQty){
 $("trackerBody").addEventListener("click",e=>{
   const deleteId=e.target.dataset.deleteLedger;
   const editId=e.target.dataset.editLedger;
-
   if(deleteId){
     const entry=ledger.find(x=>String(x.id)===String(deleteId));if(!entry)return;
     if(!confirm(`Delete this ${entry.type} tracker entry? Inventory quantity will be adjusted.`))return;
@@ -500,7 +492,6 @@ $("trackerBody").addEventListener("click",e=>{
     ledger=ledger.filter(x=>String(x.id)!==String(deleteId));
     persist();render();return;
   }
-
   if(editId){
     const entry=ledger.find(x=>String(x.id)===String(editId));if(!entry)return;
     const qtyText=prompt("Enter updated quantity:",entry.qty);
@@ -508,14 +499,12 @@ $("trackerBody").addEventListener("click",e=>{
     const qty=Number(qtyText);
     if(!Number.isInteger(qty)||qty<1)return alert("Quantity must be a whole number greater than zero.");
     if(!applyMovementChange(entry,qty))return;
-
     const date=prompt("Date (YYYY-MM-DD):",entry.date||today());
     if(date===null)return;
     const user=prompt("Changed by:",entry.user||"");
     if(user===null)return;
     const comment=prompt("Comments:",entry.comment||"");
     if(comment===null)return;
-
     entry.qty=qty;entry.date=date;entry.user=user.trim();entry.comment=comment.trim();
     persist();render();
   }
@@ -556,21 +545,65 @@ function requireXlsx(){
   if(!window.XLSX){alert("Excel support requires an internet connection to load SheetJS.");return false;}
   return true;
 }
+
+/* Exports a workbook with three sheets. */
 $("exportExcelBtn").addEventListener("click",()=>{
   if(!requireXlsx())return;
-  const data=materials.map(m=>({Equipment:m.equipment,"SAP #":m.sap,Description:m.description,"MFG P/N":m.mfg,
-    "Rate $":m.rate,"Avbl Qty":m.qty,"Inventory Required Qty":m.min}));
-  const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Inventory");XLSX.writeFile(wb,"LMP-Jafura_Inventory.xlsx");
+
+  const wb=XLSX.utils.book_new();
+
+  const inventoryData=materials.map(m=>({
+    Equipment:m.equipment,
+    "SAP #":m.sap,
+    Description:m.description,
+    "MFG P/N":m.mfg,
+    "Rate $":m.rate,
+    "Avbl Qty":m.qty,
+    "Inventory Required Qty":m.min
+  }));
+
+  const trackerData=ledger.map(x=>({
+    Equipment:x.equipment,
+    "SAP #":x.sap,
+    Description:x.description,
+    "Spare Received Qty":x.type==="Receipt"?x.qty:"",
+    "Spare Received Date":x.type==="Receipt"?x.date:"",
+    "Consumption Qty":x.type==="Issue"?x.qty:"",
+    "Consumption Date":x.type==="Issue"?x.date:"",
+    "Changed By":x.user,
+    Comments:x.comment
+  }));
+
+  const orderData=orders.map(o=>({
+    Equipment:o.equipment,
+    "SAP #":o.sap,
+    Description:o.description,
+    "MFG P/N":o.mfg,
+    "Order Qty":o.qty,
+    "Rate $":o.rate,
+    "Line Total":(Number(o.rate)||0)*(Number(o.qty)||0),
+    "Requested By":o.requestedBy,
+    Comments:o.comment
+  }));
+
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(inventoryData),"Inventory");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(trackerData),"Spare Consumption Tracker");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(orderData),"Order Items");
+
+  XLSX.writeFile(wb,"LMP-Jafura_Inventory_Tracker_Orders.xlsx");
 });
+
 $("exportOrderBtn").addEventListener("click",()=>{
   if(!orders.length)return alert("Add at least one item to the order first.");
   if(!requireXlsx())return;
-  const data=orders.map(o=>({Equipment:o.equipment,"SAP #":o.sap,Description:o.description,"MFG P/N":o.mfg,
+  const data=orders.map(o=>({
+    Equipment:o.equipment,"SAP #":o.sap,Description:o.description,"MFG P/N":o.mfg,
     Quantity:o.qty,"Rate $":o.rate,"Line Total":(Number(o.rate)||0)*o.qty,
-    "Requested By":o.requestedBy,Comments:o.comment}));
+    "Requested By":o.requestedBy,Comments:o.comment
+  }));
   const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Order Request");XLSX.writeFile(wb,"LMP-Jafura_Order_Request.xlsx");
+  XLSX.utils.book_append_sheet(wb,ws,"Order Request");
+  XLSX.writeFile(wb,"LMP-Jafura_Order_Request.xlsx");
 });
 
 function keyName(x){return String(x??"").toLowerCase().replace(/[^a-z0-9]/g,"");}
